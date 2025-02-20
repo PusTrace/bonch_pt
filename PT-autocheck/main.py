@@ -10,9 +10,8 @@ from datetime import datetime
 
 
 #consts
-chrome_driver_path = "C:\\PusTrace\\programming\\PT-Bonch\\PT-autocheck\\chromedriver.exe" # absolute path to chrome driver
 url = "https://lk.sut.ru/cabinet/?login=yes"
-service = Service(executable_path=chrome_driver_path)
+service = Service()
 driver = webdriver.Chrome(service=service)
 driver.get(url=url)
 
