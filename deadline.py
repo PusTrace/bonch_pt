@@ -7,8 +7,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.handlers import router
-from app.utils import load_reminders
+from deadline_packages.handlers import router
+from deadline_packages.utils import load_reminders
 
 # Объект бота
 TOKEN = os.getenv("BOT_TOKEN")
