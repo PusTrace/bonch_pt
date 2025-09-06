@@ -1,21 +1,20 @@
 import os
 import time
-from datetime import datetime, timedelta
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import json
-import re
+from webdriver_manager.firefox import GeckoDriverManager
+from dotenv import load_dotenv
 
 #consts
 url = "https://lk.sut.ru/cabinet/?login=yes"
-email = os.getenv('YOUR_EMAIL')
-password = os.getenv('YOUR_PASSWORD')
+load_dotenv()
+email = os.getenv('LOGIN')
+password = os.getenv('PASSWORD')
 
 time_slots = {
     "1": ("09:00", "10:35"),
@@ -28,12 +27,14 @@ time_slots = {
 }
 
 def login():
+    if email is None or password is None:
+        raise ValueError("Environment variables LOGIN and PASSWORD must be set.")
     wait = WebDriverWait(driver, 10)
-    mail_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#users")))
+    mail_input = wait.until(EC.presence_of_element_located((By.ID, "users")))
     mail_input.send_keys(email)
-    password_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#parole")))
+    password_input = wait.until(EC.presence_of_element_located((By.ID, "parole")))
     password_input.send_keys(password)
-    btn_for_login = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#logButton")))
+    btn_for_login = wait.until(EC.presence_of_element_located((By.ID, "logButton")))
     btn_for_login.click()
 def go_to_url():
     wait = WebDriverWait(driver, 10)
@@ -59,43 +60,6 @@ def check_in_bonch():
             driver.quit()
             break
     
-    
-    
-def load_schedule(filename):
-    # Загружаем расписание из JSON файла
-    with open(filename, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def check_schedule(json_data, time_slots):
-    current_date = datetime.now().strftime("%Y-%m-%d")
-    current_time = datetime.now().strftime("%H:%M")
-    
-    if current_date in json_data:
-        day_schedule = json_data[current_date]
-        if day_schedule:
-            first_pair_found = False  # Переменная для отслеживания первой пары
-            for time_slot, pair_time in day_schedule.items():
-                # Получаем время начала и конца пары
-                start_time, end_time = time_slots.get(time_slot, ("00:00", "00:00"))
-                
-                # Если это первая пара (первая из списка, независимо от номера)
-                if not first_pair_found:
-                    # Если первая пара, сдвигаем время старта на 45 минут
-                    first_pair_found = True
-                    start_time = (datetime.strptime(start_time, "%H:%M") + timedelta(minutes=45)).strftime("%H:%M")
-                
-                # Проверяем, попадает ли текущее время в интервал
-                if start_time <= current_time <= end_time:
-                    return True
-        else:
-            return False
-    else:
-        return False
-
-
-def schedule_check(filename, time_slots):
-    schedule_data = load_schedule(filename)
-    return check_schedule(schedule_data, time_slots)
 
 if __name__ == "__main__":
     options = Options()
@@ -103,13 +67,10 @@ if __name__ == "__main__":
     #options.add_argument('--disable-gpu')  # Для предотвращения ошибок на некоторых системах
     #options.add_argument('--no-sandbox')  # Иногда требуется для работы в контейнерах или в ограниченных окружениях
 
-    service = Service()
-    driver = webdriver.Chrome(service=service, options=options)
-    if schedule_check("schedule.json", time_slots):
-        driver.get("https://lk.sut.ru/cabinet/?login=yes")
-        login()
-        go_to_url()
-        check_in_bonch()
-        driver.quit()
-    else:
-        time.sleep(5*60)
+
+    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
+    driver.get("https://lk.sut.ru/cabinet/?login=yes")
+    login()
+    go_to_url()
+    check_in_bonch()
+    driver.quit()
