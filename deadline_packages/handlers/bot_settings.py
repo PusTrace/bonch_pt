@@ -20,7 +20,7 @@ bot_settings_router = Router()
 async def settings(message: types.Message):
     await message.answer("настройки ⚙️", reply_markup=kb.settings)
 
-@bot_settings_router.message(F.text.casefold() == 'изменить интервал 🗓'.casefold())
+@bot_settings_router.message(F.text.casefold() == 'изменить интервал 🗓'.casefold()) # TODO: fix change interval from .json to db
 async def settings_interval(message: types.Message, state: FSMContext):
     if message.text and message.text.lower() == "отмена❌":
         await state.clear()
@@ -97,3 +97,54 @@ async def enter_interval(message: types.Message, state: FSMContext):
         )
     except ValueError:
         await message.answer("Ошибка: введите интервал в формате: 1, 7, 30")
+        
+@bot_settings_router.message(F.text.casefold() == 'отмена❌'.casefold())
+async def cancel_anywhere(message: types.Message, state: FSMContext):
+    if await state.get_state():
+        await state.clear()
+        await message.answer("Действие отменено.", reply_markup=kb.main)
+    else:
+        await message.answer("Вы не находитесь в процессе настройки ⚙️.", reply_markup=kb.main)
+        
+# TODO: add delete message from db
+@bot_settings_router.message(F.text.casefold() == 'удалить запись 🔒'.casefold())
+async def delete_entry(message: types.Message, state: FSMContext):
+    if message.text.lower() == "отмена❌":
+        await state.clear()
+        await message.answer("Удаление записи отменено.", reply_markup=kb.main)
+        return
+
+    await state.set_state(ReminderStates.waiting_for_name_delete)
+    await message.answer("Введите имя для кого хотите удалить запись 🔒", reply_markup=clear)
+
+@bot_settings_router.message(ReminderStates.waiting_for_name_delete)
+async def confirm_deletion(message: types.Message, state: FSMContext):
+    if message.text.lower() == "отмена❌":
+        await state.clear()
+        await message.answer("Удаление записи отменено.", reply_markup=kb.main)
+        return
+
+    name_to_delete = message.text.strip()
+
+    # Проверяем существование записи с таким именем
+    user_id = str(message.chat.id)
+    record_found = False
+
+    if user_id in reminders:
+        for reminder in reminders[user_id]["reminders"]:
+            if reminder["name"].lower() == name_to_delete.lower():
+                reminders[user_id]["reminders"].remove(reminder)
+                record_found = True
+                break
+
+        # Удаляем пользователя из базы, если у него больше нет записей
+        if not reminders[user_id]["reminders"]:
+            del reminders[user_id]
+
+    if record_found:
+        save_reminders(reminders)  # Сохраняем изменения в базе данных
+        await message.answer(f"Запись для {name_to_delete} успешно удалена!", reply_markup=kb.main)
+    else:
+        await message.answer("Пользователь с таким именем не найден в базе данных.", reply_markup=kb.main)
+
+    await state.clear()

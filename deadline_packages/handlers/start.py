@@ -6,6 +6,7 @@ from aiogram.filters.command import CommandStart
 
 import deadline_packages.keyboards as kb
 from deadline_packages.utils import load_reminders
+from deadline_packages.utils import Database
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,23 +27,28 @@ async def info(message: types.Message):
     now = datetime.now()
     user_id = str(message.chat.id)
 
-    if user_id not in reminders or not reminders[user_id]["reminders"]:
-        await message.answer("У вас нету напоминаний.")
+    # Загружаем напоминания пользователя из БД
+    db = Database()
+    db.cur.execute(
+        "SELECT message, deadline FROM reminders WHERE chat_id = %s AND was_send = false",
+        (user_id,)
+    )
+    user_reminders = db.cur.fetchall()
+    db.close()
+
+    if not user_reminders:
+        await message.answer("У вас нет напоминаний.")
         return
 
-    # Ищем ближайший  дедлайн
-    user_reminders = reminders[user_id]["reminders"]
+    # Ищем ближайший дедлайн
     next_deadline = None
-
     for reminder in user_reminders:
-        deadline = datetime.strptime(reminder["deadline"], "%d.%m")
-        current_year_deadline = deadline.replace(year=now.year)
+        # reminder[1] это datetime из БД
+        deadline = reminder[1]
 
-        # Обновляем ближайший  дедлайна
-        if not next_deadline or current_year_deadline < next_deadline["date"]:
-            next_deadline = {"name": reminder["name"], "date": current_year_deadline}
+        if not next_deadline or deadline < next_deadline["date"]:
+            next_deadline = {"name": reminder[0], "date": deadline}
 
-    # Если нашли ближайший  дедлайна
     if next_deadline:
         time_left = next_deadline["date"] - now
         days_left = time_left.days
@@ -50,9 +56,10 @@ async def info(message: types.Message):
         minutes_left = (time_left.seconds // 60) % 60
 
         await message.answer(
-            f"Следующий дедлайн : {next_deadline['name']} через {days_left} дня, {hours_left} часов и {minutes_left} минут.")
+            f"Следующий дедлайн: {next_deadline['name']} через {days_left} дня, {hours_left} часов и {minutes_left} минут."
+        )
     else:
-        await message.answer("У вас нет предстоящих дней дедлайна.")
+        await message.answer("У вас нет предстоящих дедлайнов.")
 
 
 @start_router.message(F.text.casefold() == 'help'.casefold())

@@ -48,21 +48,20 @@ async def main():
 
 
 # send messages
-async def check_and_send_reminders():
+async def check_and_send_reminders(): # TODO: fix check and send reminders from .json to db
     now = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)  # Обнуляем время
     for chat_id, chat_data in reminders.items():  # user_id - это ID группы
         for reminder in chat_data["reminders"]:
-            deadline = datetime.strptime(reminder["deadline"], "%d.%m")
+            deadline = datetime.strptime(reminder[1], "%d.%m")
             current_year_deadline = deadline.replace(year=now.year)
 
             days_left = (current_year_deadline - now).days  # Теперь дни считаются правильно
             if days_left in reminder["intervals"]:
                 try:
-                    # Получаем topic_id, если он указан
                     message_thread_id = 22
                     await bot.send_message(
                         chat_id,
-                        f"Напоминание: {reminder['name']} через {days_left} дней!",
+                        f"Напоминание: {reminder[0]} через {days_left} дней!",
                         message_thread_id=message_thread_id  # Указываем ID топика
                     )
                 except Exception as e:
@@ -85,5 +84,5 @@ async def bot_health_check():
         print(f"Ошибка отправки тестового сообщения: {e}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # TODO: do that bot can work with supergroups and topics
     asyncio.run(main())
