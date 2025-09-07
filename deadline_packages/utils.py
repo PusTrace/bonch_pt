@@ -1,18 +1,50 @@
 import json
 from pathlib import Path
+import psycopg2
+import os
+from dotenv import load_dotenv
 
-FILE_PATH = Path("database/database.json")
+class Database:
+    def __init__(self):
+        load_dotenv()
+        self.conn = psycopg2.connect(
+            host="localhost",
+            database="bonch",
+            user="postgres",
+            password=os.getenv("DB_PASSWORD")
+        )
+        self.cur = self.conn.cursor()
+
+    def close(self):
+        self.cur.close()
+        self.conn.close()
+
+    def commit(self):
+        self.conn.commit()
+
+
 
 def load_reminders():
-    if FILE_PATH.exists():
-        with FILE_PATH.open("r", encoding="utf-8") as file:
-            try:
-                return json.load(file) or {}
-            except json.decoder.JSONDecodeError:
-                return {}
+    db = Database()
+    db.cur.execute("SELECT * FROM reminders")
+    reminders = db.cur.fetchall()
+    db.close()
+    return reminders
 
-    return {}
+def save_reminders(reminder):
+    db = Database()
+    db.cur.execute(
+        """
+        INSERT INTO reminders (chat_id, message, deadline, intervals)
+        VALUES (%s, %s, %s, %s)
+        """,
+        (
+            reminder[0],                   # user_id
+            reminder[1],                   # user_data как JSON
+            reminder[2],                   # deadline (datetime)
+            json.dumps(reminder[3])        # intervals как JSON
+        )
+    )
+    db.commit()
+    db.close()
 
-def save_reminders(reminders):
-    with FILE_PATH.open("w", encoding="utf-8") as file:
-        json.dump(reminders, file, ensure_ascii=False, indent=4)

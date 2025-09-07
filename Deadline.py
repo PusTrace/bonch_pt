@@ -1,26 +1,39 @@
 import asyncio
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from deadline_packages.handlers import router
+from deadline_packages.handlers.start import start_router
+from deadline_packages.handlers.do_reminder import do_reminder_router
+from deadline_packages.handlers.bot_settings import bot_settings_router
+from deadline_packages.handlers.admin import admin_router
+
 from deadline_packages.utils import load_reminders
 
 # Объект бота
-TOKEN = os.getenv("BOT_TOKEN")
-bot = Bot(token=TOKEN)
+
+load_dotenv()
+api_token = os.getenv("BOT_TOKEN")
+bot = Bot(token=api_token)
 
 storage = MemoryStorage()
 dp = Dispatcher(bot=bot, storage=storage)
 
+reminders = load_reminders()
+
 # Основной запуск бота
 async def main():
     await bot_health_check()
-    dp.include_router(router)
+    dp.include_router(start_router)
+    dp.include_router(do_reminder_router)
+    dp.include_router(bot_settings_router)
+    dp.include_router(admin_router)
+
     # Настраиваем планировщик
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_and_send_reminders,  "cron", hour=14, minute=42)  # Проверяем каждый день в 9 утра
@@ -33,7 +46,7 @@ async def main():
         scheduler.shutdown()
         await bot.session.close()
 
-reminders = load_reminders()
+
 # send messages
 async def check_and_send_reminders():
     now = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)  # Обнуляем время
@@ -46,7 +59,7 @@ async def check_and_send_reminders():
             if days_left in reminder["intervals"]:
                 try:
                     # Получаем topic_id, если он указан
-                    message_thread_id = "22"
+                    message_thread_id = 22
                     await bot.send_message(
                         chat_id,
                         f"Напоминание: {reminder['name']} через {days_left} дней!",
@@ -60,7 +73,7 @@ async def check_and_send_reminders():
 
 # для проверки работы бота
 async def bot_health_check():
-    chat_ids = [-1002364226704]
+    chat_ids = [1185330189]
     try:
         for chat_id in chat_ids:
             await bot.send_message(
