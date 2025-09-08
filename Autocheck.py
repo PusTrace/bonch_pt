@@ -62,9 +62,9 @@ def check_in_bonch():
 
 if __name__ == "__main__":
     options = Options()
-    #options.add_argument('--headless')  # Запуск без отображения окна браузера
-    #options.add_argument('--disable-gpu')  # Для предотвращения ошибок на некоторых системах
-    #options.add_argument('--no-sandbox')  # Иногда требуется для работы в контейнерах или в ограниченных окружениях
+    options.add_argument('--headless')  # Запуск без отображения окна браузера
+    options.add_argument('--disable-gpu')  # Для предотвращения ошибок на некоторых системах
+    options.add_argument('--no-sandbox')  # Иногда требуется для работы в контейнерах или в ограниченных окружениях
 
 
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
