@@ -18,8 +18,8 @@ def connect_db(password):
 def push_schedule_to_db(cursor, entry):
     cursor.execute(
         """
-        INSERT INTO schedule (date, pair, subject, auditorium, teacher, lesson_type)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO schedule (date, pair, subject, auditorium, teacher, lesson_type, sect)
+        VALUES (%s, %s, %s, %s, %s, %s, 'IKB-32')
         ON CONFLICT (date, pair) DO NOTHING
         """,
         entry
@@ -32,7 +32,7 @@ def parse_bonch(cursor, current_date, duration):
     for week in range(duration):
         week_start = current_date - timedelta(days=current_date.weekday())  
         url_date = week_start.strftime('%Y-%m-%d')
-        url = f"https://www.sut.ru/studentu/raspisanie/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya?group=56160&date={url_date}"
+        url = f"https://www.sut.ru/studentu/raspisanie/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya?group=56161&date={url_date}"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -71,6 +71,7 @@ def parse_bonch(cursor, current_date, duration):
                     teacher.get_text(strip=True),
                     lesson_type.get_text(strip=True)
                 )
+                
                 push_schedule_to_db(cursor, entry)
                 pair_index += 1
                 
@@ -79,7 +80,7 @@ def parse_bonch(cursor, current_date, duration):
 
 
 def last_date_from_db(cursor):
-    cursor.execute("SELECT MAX(date) FROM schedule")
+    cursor.execute("SELECT MAX(date) FROM schedule WHERE sect='IKB-32'")
     result = cursor.fetchone()
     return result[0].date() if result[0] else datetime.now().date()
 
@@ -88,7 +89,7 @@ if __name__ == "__main__":
     password = os.getenv("DB_PASSWORD")
     conn, cursor = connect_db(password)
     current_date = last_date_from_db(cursor)
-    duration = 15
+    duration = 9
     parse_bonch(cursor, current_date, duration)
     conn.commit()
     conn.close()
