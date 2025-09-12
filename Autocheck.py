@@ -9,14 +9,14 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import load_dotenv
 from deadline_packages.utils import Database
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 def log(message):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
 
 # ====== FUNCTIONS ======
 
-def login(email, password):
+def login(email, password, driver):
     log("Начинаю логин...")
     if email is None or password is None:
         raise ValueError("Environment variables LOGIN and PASSWORD must be set.")
@@ -29,7 +29,7 @@ def login(email, password):
     btn_for_login.click()
     log("Логин выполнен.")
 
-def go_to_url():
+def go_to_url(driver):
     log("Переход на страницу занятий...")
     wait = WebDriverWait(driver, 10)
     open_learn = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#heading1 > h5 > div")))
@@ -38,7 +38,7 @@ def go_to_url():
     go_to_scheduler.click()
     log("На странице расписания.")
 
-def check_in_bonch(end_time):
+def check_in_bonch(end_time, driver):
     """
     Пытается отметить занятие до указанного end_time (datetime.time).
     Каждые 5 минут обновляет страницу.
@@ -77,6 +77,13 @@ def check_in_bonch(end_time):
 
 
 def check(schedule):
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    driver_path = ChromeDriverManager().install()
+    driver = webdriver.Chrome(service=Service(driver_path), options=options)
+    
     missed_lessons = 0
     for lesson in schedule:
         pair = lesson[2]
@@ -101,9 +108,9 @@ def check(schedule):
         # время пары
         log(f"Время пары {pair}, заходим на сайт...")
         driver.get("https://lk.sut.ru/cabinet/?login=yes")
-        login(email, password)
-        go_to_url()
-        was_checked, error = check_in_bonch(end_time)
+        login(email, password, driver)
+        go_to_url(driver)
+        was_checked, error = check_in_bonch(end_time, driver)
         if was_checked:
             log(f"Я тебя отметил ленивая ты жопа! Пара {pair}")
         else:
@@ -126,15 +133,9 @@ if __name__ == "__main__":
         "4": ("14:45", "16:20"),
         "5": ("16:30", "18:05"),
         "6": ("18:15", "19:50")
-    }  
-
+    }
+    log("Инициализация базы данных...")
     db = Database()
-
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     while True:
         current_date = datetime.now().date()
@@ -152,9 +153,22 @@ if __name__ == "__main__":
                 time.sleep(sleep_seconds)
                 continue
         else:
-            next_date = schedule[1]
-            delta_days = (next_date - current_date).days
-            sleep_seconds = delta_days * 24 * 60 * 60
-            log(f"Сегодня пар нет. Жду до {next_date} ({sleep_seconds/3600:.1f} часов)")
+            current_datetime = datetime.now()
+            next_date_row = schedule[0]
+            next_date = next_date_row[1]
+
+            if isinstance(next_date, date) and not isinstance(next_date, datetime):
+                next_datetime = datetime.combine(next_date, datetime.min.time())
+            else:
+                next_datetime = next_date
+
+            # убираем таймзону, если есть
+            if isinstance(next_datetime, datetime) and next_datetime.tzinfo is not None:
+                next_datetime = next_datetime.replace(tzinfo=None)
+
+            sleep_seconds = (next_datetime - current_datetime).total_seconds()
+
+
+            log(f"Сегодня пар нет. Жду до {next_date} ({sleep_seconds/60:.1f} минут)")
             time.sleep(sleep_seconds)
             continue
