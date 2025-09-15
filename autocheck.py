@@ -88,10 +88,10 @@ def check(schedule):
     for lesson in schedule:
         pair = lesson[2]
         start_time_str, end_time_str = time_slots[pair]
-        start_time = datetime.strptime(start_time_str, "%H:%M").time()
-        end_time = datetime.strptime(end_time_str, "%H:%M").time()
-
-        current_time = datetime.now().time()
+        today = datetime.now().date()
+        start_time = datetime.combine(today, datetime.strptime(start_time_str, "%H:%M").time())
+        end_time   = datetime.combine(today, datetime.strptime(end_time_str, "%H:%M").time())
+        current_time = datetime.now()
         log(f"Проверяю время пары {pair}: {start_time_str} - {end_time_str}, текущее: {current_time.strftime('%H:%M')}")
 
         if current_time > end_time:
@@ -101,8 +101,9 @@ def check(schedule):
 
         while current_time < start_time:
 
-            log(f"Ещё не время пары {pair}, жду {(start_time-current_time).total_seconds()/60} минут...")
-            time.sleep((start_time-current_time).total_seconds())
+            delta = (start_time - current_time).total_seconds()
+            log(f"Ещё не время пары {pair}, жду {delta/60:.1f} минут...")
+            time.sleep(max(delta, 0))
             current_time = datetime.now().time()
 
         # время пары
