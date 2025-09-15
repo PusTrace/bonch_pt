@@ -45,7 +45,7 @@ def check_in_bonch(end_time, driver):
     """
     log("Проверяю кнопки 'Начать занятие'...")
     while True:
-        current_time = datetime.now().time()
+        current_time = datetime.now()
         if current_time > end_time:
             log("Время пары закончилось, пропускаю отметку.")
             return False, "Время истекло"
