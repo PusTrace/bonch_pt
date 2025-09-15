@@ -25,7 +25,7 @@ class Database:
     def check_scheduler(self, current_date):
         self.cur.execute("""
             SELECT * FROM schedule 
-            WHERE date = %s AND sect = 'IKB-31'
+            WHERE date::date = %s AND sect = 'IKB-31'
             ORDER BY pair::int ASC
         """, (current_date,))
         today_schedule = self.cur.fetchall()
@@ -36,7 +36,7 @@ class Database:
                 WHERE date = (
                     SELECT MIN(date) 
                     FROM schedule 
-                    WHERE sect = 'IKB-31' AND date > %s
+                    WHERE sect = 'IKB-31' AND date::date > %s
                 ) 
                 AND sect = 'IKB-31'
                 ORDER BY pair::int ASC
