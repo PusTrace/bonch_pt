@@ -36,7 +36,7 @@ class Database:
                 WHERE date = (
                     SELECT MIN(date) 
                     FROM schedule 
-                    WHERE sect = 'IKB-31' AND date::date > %s
+                    WHERE sect = 'IKB-31' AND date > %s
                 ) 
                 AND sect = 'IKB-31'
                 ORDER BY pair::int ASC

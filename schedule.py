@@ -57,7 +57,6 @@ def parse_bonch(cursor, current_date, duration):
             print(f"Ошибка {response.status_code} при загрузке {url}")
             continue
 
-        print(response.text)
         soup = BeautifulSoup(response.text, 'html.parser')
 
         
@@ -73,42 +72,20 @@ def parse_bonch(cursor, current_date, duration):
                 teacher = block.find("span", {"class": "teacher"})
                 auditorium = block.find("div", {"class": "vt242"})
                 lesson_type = block.find("div", {"class": "vt243"})
+                
+                if subject is None and teacher is None and auditorium is None and lesson_type is None:
+                    print(f"Пропущено: {subject, teacher, auditorium, lesson_type}")
+                    pair_index += 1
+                    continue
 
-                print(day_date,
+                entry = (
+                    day_date,
                     pairs[pair_index] if pair_index < len(pairs) else None,
                     subject.get_text(strip=True) if subject is not None else None,
                     auditorium.get_text(strip=True) if auditorium is not None else None,
                     teacher.get_text(strip=True) if teacher is not None else None,
                     lesson_type.get_text(strip=True) if lesson_type is not None else None)
-                
-                if not all([subject, teacher, auditorium, lesson_type]):
-                    print("Пропущено:")
-                    if not subject:
-                        print("  ❌ Нет предмета")
-                    if not teacher:
-                        print("  ❌ Нет преподавателя")
-                    if not auditorium:
-                        print("  ❌ Нет аудитории")
-                    if not lesson_type:
-                        print("  ❌ Нет типа занятия")
-                    pair_index += 1
-                    
-                    a = input("Press Enter to continue: ")
-                    if a.strip() == "":
-                        continue
-                    else:
-                        quit()
-
-
-                entry = (
-                    day_date,
-                    pairs[pair_index] if pair_index < len(pairs) else None,
-                    subject.get_text(strip=True),
-                    auditorium.get_text(strip=True),
-                    teacher.get_text(strip=True),
-                    lesson_type.get_text(strip=True)
-                )
-                
+                print(entry)
                 push_schedule_to_db(cursor, entry)
                 pair_index += 1
                 
@@ -127,7 +104,7 @@ if __name__ == "__main__":
     password = os.getenv("DB_PASSWORD")
     conn, cursor = connect_db(password)
     current_date = last_date_from_db(cursor)
-    duration = 1
+    duration = 15
     parse_bonch(cursor, current_date, duration)
     conn.commit()
     conn.close()
