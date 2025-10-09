@@ -1,44 +1,72 @@
 import os
 from dotenv import load_dotenv
-import psycopg2
+import asyncpg
+from datetime import date
 
 class Database:
     def __init__(self):
         load_dotenv()
-        self.conn = psycopg2.connect(
+        self.pool = None
+
+
+    async def connect(self):
+        """Создаёт пул соединений с PostgreSQL"""
+        self.pool = await asyncpg.create_pool(
             host="localhost",
             database="bonch",
             user="postgres",
-            password=os.getenv("DB_PASSWORD")
+            password=os.getenv("DB_PASSWORD"),
+            min_size=1,
+            max_size=10
         )
-        self.cur = self.conn.cursor()
 
-    def close(self):
-        self.cur.close()
-        self.conn.close()
 
-    def commit(self):
-        self.conn.commit()
+    async def close(self):
+        """Закрывает пул соединений"""
+        await self.pool.close()
+        
 
-    def check_scheduler(self, current_date):
-        self.cur.execute("""
-            SELECT * FROM schedule 
-            WHERE date::date = %s AND sect = 'IKB-31'
-            ORDER BY pair::int ASC
-        """, (current_date,))
-        today_schedule = self.cur.fetchall()
+    async def check_scheduler(self, current_date: date):
+        """
+        Получает расписание на текущий день.
+        Если на текущий день ничего нет — возвращает ближайшую дату после текущей.
+        Возвращает: (список записей, bool — True если есть на сегодня)
+        """
+        async with self.pool.acquire() as conn:
+            # Сначала проверяем расписание на текущий день
+            today_schedule = await conn.fetch("""
+                SELECT * FROM schedule 
+                WHERE date::date = $1 AND sect = 'IKB-31'
+                ORDER BY pair::int ASC
+            """, current_date)
 
-        if len(today_schedule) == 0:
-            self.cur.execute("""
+            if today_schedule:
+                return today_schedule, True
+
+            # Если на сегодня ничего нет — ищем ближайшую будущую дату
+            next_schedule = await conn.fetch("""
                 SELECT * FROM schedule 
                 WHERE date = (
                     SELECT MIN(date) 
                     FROM schedule 
-                    WHERE sect = 'IKB-31' AND date > %s
+                    WHERE sect = 'IKB-31' AND date > $1
                 ) 
                 AND sect = 'IKB-31'
                 ORDER BY pair::int ASC
-            """, (current_date,))
-            return self.cur.fetchall(), False
-        else:
-            return today_schedule, True
+            """, current_date)
+
+            return next_schedule, False
+        
+        
+    async def get_user(self, user_id: int):
+        async with self.pool.acquire() as conn:
+            user = await conn.fetchrow("""
+                SELECT * FROM users WHERE id = $1
+            """, user_id)
+            return user
+
+    async def add_user(self, user_id: int, username: str, full_name: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                INSERT INTO users (id, username, full_name) VALUES ($1, $2, $3)
+            """, user_id, username, full_name)
