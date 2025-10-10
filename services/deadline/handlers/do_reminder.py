@@ -4,10 +4,10 @@ import logging
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 
-import deadline.keyboards as kb
-from deadline.keyboards import clear
-from deadline.states import ReminderStates
-from deadline.utils import save_reminders
+from services.deadline import keyboards as kb
+from services.deadline.keyboards import clear
+from services.deadline.states import ReminderStates
+from core.db import Database
 
 logging.basicConfig(level=logging.INFO)
 
@@ -58,7 +58,9 @@ async def enter_deadline(message: types.Message, state: FSMContext):
 
         reminders = (user_id, user_data['name'], deadline, [0, 1, 2, 3, 7])
 
-        save_reminders(reminders)
+        db: Database = message.bot['db']  # достаём базу из контекста
+        
+        await db.save_reminders(reminders)
         await state.clear()
         await message.answer(
             f"Напоминание {user_data['name']} на {deadline.strftime('%d.%m')} успешно установлено!",

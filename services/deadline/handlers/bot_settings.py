@@ -3,15 +3,11 @@ import logging
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 
-import deadline.keyboards as kb
-from deadline.keyboards import clear
-from deadline.states import ReminderStates
-from deadline.utils import load_reminders, save_reminders
+import services.deadline.keyboards as kb
+from services.deadline.keyboards import clear
+from services.deadline.states import ReminderStates
+from core.db import Database
 
-logging.basicConfig(level=logging.INFO)
-
-
-reminders = load_reminders()
 
 bot_settings_router = Router(name="bot_settings")
 
@@ -26,35 +22,28 @@ async def settings_interval(message: types.Message, state: FSMContext):
         await state.clear()
         await message.answer("Установка интервала отменено.", reply_markup=kb.main)
         return
-    await state.set_state(ReminderStates.waiting_for_name_settings)
-    await message.answer("Введите имя для кого хотите изменить интервал 🗓", reply_markup=clear)
+    await state.set_state(ReminderStates.waiting_for_message)
+    await message.answer("Введите сообщение для которого хотите изменить интервал 🗓", reply_markup=clear)
 
-@bot_settings_router.message(ReminderStates.waiting_for_name_settings)
-async def enter_name(message: types.Message, state: FSMContext):
+@bot_settings_router.message(ReminderStates.waiting_for_message)
+async def enter_message(message: types.Message, state: FSMContext):
     if message.text.lower() == "отмена❌":
         await state.clear()
         await message.answer("Изменение интервала отменено.", reply_markup=kb.main)
         return
 
-    name_to_check = message.text.strip()  # Имя, которое ввел пользователь
+    message_to_check = message.text.strip()  # Сообщение, которое ввел пользователь
 
-    # Проверяем, существует ли человек с таким именем в базе данных
-    user_exists = False
-    for user_id, user_info in reminders.items():
-        for reminder in user_info["reminders"]:
-            if reminder["name"].lower() == name_to_check.lower():  # Сравниваем имена без учета регистра
-                user_exists = True
-                break
-        if user_exists:
-            break
+    # Проверяем, существует ли сообщение с таким текстом в базе данных
+    db: Database = message.bot['db']  # достаём базу из контекста
+    reminder = await db.get_reminder(message_to_check)
 
-    if not user_exists:
-        # Если такого имени нет в базе
-        await message.answer("Пользователь с таким именем не существует в базе данных.", reply_markup=kb.main)
+    if not reminder:
+        await message.answer("Сообщение не найдено в базе данных.", reply_markup=kb.main)
         return
 
-    # Сохраняем имя пользователя в состоянии для дальнейшего использования
-    await state.update_data(name=name_to_check)
+    # Сохраняем сообщение в состоянии для дальнейшего использования
+    await state.update_data(message=message_to_check)
 
     # Переходим к следующему шагу (ввод интервалов)
     await state.set_state(ReminderStates.waiting_for_interval_settings)
@@ -74,7 +63,14 @@ async def enter_interval(message: types.Message, state: FSMContext):
         user_interval = [int(item.strip()) for item in user_interval_str.split(",")]
         user_data = await state.get_data()
 
+        
+        
         # Сохраняем напоминание
+            # Проверяем, существует ли сообщение с таким текстом в базе данных
+        db: Database = message.bot['db']  # достаём базу из контекста
+        reminder = await db.get_reminder(message_to_check)
+
+
         user_id = str(message.chat.id)
         if user_id not in reminders:
             reminders[user_id] = {"reminders": []}

@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import asyncpg
 from datetime import date
+import json
 
 class Database:
     def __init__(self):
@@ -65,8 +66,48 @@ class Database:
             """, user_id)
             return user
 
-    async def add_user(self, user_id: int, username: str, full_name: str):
+
+    async def add_user(self, user_id: int, username: str, full_name: str, group: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                INSERT INTO users (id, username, full_name) VALUES ($1, $2, $3)
-            """, user_id, username, full_name)
+                INSERT INTO users (telegram_id, username, full_name, group) VALUES ($1, $2, $3, $4)
+            """, user_id, username, full_name, group)
+            
+            
+    async def load_reminders(self):
+        async with self.pool.acquire() as conn:
+            reminders = await conn.fetch("""
+                SELECT * FROM reminders
+            """)
+            return reminders
+
+
+    async def get_reminder(self, message: str = None, user_id: int = None):
+        async with self.pool.acquire() as conn:
+            if message: 
+                reminder = await conn.fetch("""
+                    SELECT * FROM reminders WHERE message = $1
+                """, message)
+                return reminder
+            if user_id:
+                reminder = await conn.fetch("""
+                    SELECT * FROM reminders WHERE user_id = $1
+                """, user_id)
+                return reminder
+
+
+    async def save_reminders(self, reminder):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO reminders (chat_id, message, deadline, intervals)
+                VALUES ($1, $2, $3, $4)
+                """,
+                (
+                    reminder[0],                   # user_id
+                    reminder[1],                   # user_data как JSON
+                    reminder[2],                   # deadline (datetime)
+                    json.dumps(reminder[3])        # intervals как JSON
+                )
+            )
+            await conn.commit() 

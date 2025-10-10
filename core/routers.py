@@ -1,4 +1,4 @@
-from start import cmd_start
+from core.start import cmd_start
 from services.deadline.router import router as deadlines_router
 
 def register_routers(dp):
