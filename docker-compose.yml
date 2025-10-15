@@ -1,7 +1,7 @@
 version: '3.9'
 services:
-  autocheck:
+  bonch:
     build: .
+    container_name: bonch
     restart: always
-    env_file:
-      - .env
+    env_file: .env
