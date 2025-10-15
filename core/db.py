@@ -14,10 +14,11 @@ class Database:
     async def connect(self):
         """Создаёт пул соединений с PostgreSQL"""
         self.pool = await asyncpg.create_pool(
-            host="localhost",
-            database="bonch",
-            user="postgres",
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
             min_size=1,
             max_size=10
         )

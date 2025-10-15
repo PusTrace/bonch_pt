@@ -2,4 +2,6 @@ version: '3.9'
 services:
   autocheck:
     build: .
-    restart: always  # чтобы контейнер перезапускался при падении
+    restart: always
+    env_file:
+      - .env

@@ -1,0 +1,9 @@
+aiogram==3.22.0
+APScheduler==3.11.0
+asyncpg==0.30.0
+beautifulsoup4==4.14.2
+psycopg2_binary==2.9.10
+python-dotenv==1.1.1
+Requests==2.32.5
+selenium==4.36.0
+webdriver_manager==4.0.2
