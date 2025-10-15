@@ -68,7 +68,7 @@ async def enter_interval(message: types.Message, state: FSMContext):
         # Сохраняем напоминание
             # Проверяем, существует ли сообщение с таким текстом в базе данных
         db: Database = message.bot['db']  # достаём базу из контекста
-        reminder = await db.get_reminder(message_to_check)
+        reminder = await db.get_reminder(user_id=str(message.chat.id))
 
 
         user_id = str(message.chat.id)

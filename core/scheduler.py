@@ -1,9 +1,6 @@
-from core.db import get_deadlines
-
 def init_scheduler(scheduler, bot, db):
-
     async def send_reminders():
-        deadlines = get_deadlines(db)
+        deadlines = await db.get_deadlines()
         # Отправка уведомлений если дедлайн на сегодня или на интервалы TODO
         for chat_id, text in deadlines:
             await bot.send_message(chat_id, f"🕒 Сегодня дедлайн: {text}")

@@ -7,10 +7,10 @@ from aiogram import Router, types, F
 # Создаём главный роутер для сервиса "deadlines"
 router = Router(name="deadlines")
 
-@router.message(F.text == 'Сроки ⏰')
+@router.message(F.text == 'Статистика 📊')
 async def LoopBack(message: types.Message):
-    await message.answer("LoopBack, Сроки ⏰")
-    
+    await message.answer("LoopBack, Статистика 📊")
+
     # Включаем подроутеры (подмодули)
     # router.include_router(do_reminder_router)
     # router.include_router(bot_settings_router)
