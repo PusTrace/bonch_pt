@@ -18,7 +18,6 @@ class Database:
             database=os.getenv("DB_NAME"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME"),
             min_size=1,
             max_size=10
         )
