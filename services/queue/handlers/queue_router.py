@@ -47,7 +47,19 @@ async def handle_queue_callback(callback: types.CallbackQuery, db: Database):
 async def how_to_queue(callback: types.CallbackQuery):
     await callback.message.bot.send_message(chat_id=callback.message.chat.id, text="Чтобы занять очередь, введите команду: /take_a_place <Абревиатура предмета> <номер бригады>(только 1 раз) Пример: /take_a_place ОМВКС 31\n Обратите внимание, что вы можете занять очередь только на ближайшие 3 дня.\n")
     await callback.answer()
-    
+
+@router.callback_query(F.data == "abbreviations")
+async def abbreviations(callback: types.CallbackQuery):
+    await callback.message.bot.send_message(chat_id=callback.message.chat.id, text="Абревиатуры предметов:\n\n"
+        "1. ASTRA - Безопасность Astra-Linux\n"
+        "2. ББЛС - Безопасность беспроводных локальных сетей\n"
+        "3. ЗОССУ - Защита операционных систем сетевых устройств\n"
+        "4. ЗПИД - Защита программ и данных\n"
+        "5. МИСКЗИ - Методы и средства криптографической защиты информации\n"
+        "6. ОМВКС - Основы маршрутизации в компьютерных сетях\n"
+        "7. ПАСЗИ - Программно-аппаратные средства защиты информации\n"
+        "8. ОИПОИБ - Организационное и правовое обеспечение информационной безопасности\n"
+    )
 
 @router.message(Command("take_a_place"))
 async def take_a_place(message: types.Message, db: Database):
