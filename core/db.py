@@ -59,14 +59,6 @@ class Database:
             """, current_date)
 
             return next_schedule, False
-        
-        
-    async def get_user(self, chat_id: int):
-        async with self.pool.acquire() as conn:
-            user = await conn.fetchrow("""
-                SELECT * FROM users WHERE chat_id = $1
-            """, chat_id)
-            return user
 
 
     async def add_user(self, chat_id: int, username: str, full_name: str, group: str):
@@ -164,7 +156,7 @@ class Database:
                     WHERE s.sect = $1
                     AND s.subject = $2
                     AND s.date >= NOW() 
-                    AND s.date < NOW() + INTERVAL '2 days'
+                    AND s.date < NOW() + INTERVAL '3 days'
                 """, sect, full_subject, brigade_number)
                 
                 # result выглядит как "INSERT 0 1"
@@ -197,3 +189,16 @@ class Database:
                 SELECT * FROM users WHERE chat_id = $1
             """, user_id)
             return user_info
+        
+    async def get_today_schedule(self, sect):
+        async with self.pool.acquire() as conn:
+            schedule = await conn.fetch("""
+                SELECT date, pair, subject, auditorium, teacher, lesson_type FROM schedule WHERE sect = $1 AND date = CURRENT_DATE
+            """, sect)
+            return schedule
+    
+    async def save_brigade(self, brigade, user_id):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE users SET brigade = $1 WHERE chat_id = $2
+            """, brigade, user_id)

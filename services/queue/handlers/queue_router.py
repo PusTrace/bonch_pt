@@ -13,38 +13,7 @@ router = Router(name="queue")
 
 @router.callback_query(F.data == "queue_main")
 async def queue_main(callback: types.CallbackQuery, db: Database):
-    chat_id = callback.message.chat.id
-    thread_id = getattr(callback.message, "message_thread_id", None)
-
-    saved = await db.get_service_topic("queue")
-
-    # Если запрос вернул список — берём первую запись
-    if isinstance(saved, list):
-        if len(saved) == 0:
-            saved = None  # пустой список — значит, ничего нет
-        else:
-            saved = saved[0]
-
-    if thread_id is not None:
-        if saved is None:
-            # первый вызов — сохраняем топик
-            await db.set_service_topic("queue", chat_id, thread_id)
-            await callback.message.answer("Сервис закреплён за этим топиком ✅")
-        else:
-            saved_thread_id = saved["thread_id"]
-            if saved_thread_id != thread_id:
-                await callback.answer("⚠️ Этот сервис уже закреплён за другим топиком.", show_alert=True)
-                return
-
-        # Отправляем сообщение в нужный топик
-        await callback.bot.send_message(
-            chat_id=chat_id,
-            text="Панель управления очередью:",
-            reply_markup=kb.main,
-            message_thread_id=thread_id
-        )
-    else:
-        await callback.message.answer("Панель управления очередью:", reply_markup=kb.main)
+    await callback.message.edit_reply_markup(reply_markup=kb.main)
 
     await callback.answer()
 
@@ -74,9 +43,7 @@ async def handle_queue_callback(callback: types.CallbackQuery, db: Database):
 
 @router.callback_query(F.data == "how_to_queue")
 async def how_to_queue(callback: types.CallbackQuery):
-    await callback.message.bot.send_message("Чтобы занять очередь, введите команду: /take_a_place <Абривиатура предмета> <номер бригады> \n"
-                         "Пример: /take_a_place ОМВКС 31\n"
-                         "Обратите внимание, что вы можете занять очередь только на ближайшие 2 дня.\n",)
+    await callback.message.bot.send_message(chat_id=callback.message.chat.id, text="Чтобы занять очередь, введите команду: /take_a_place <Абревиатура предмета> <номер бригады>(только 1 раз) Пример: /take_a_place ОМВКС 31\n Обратите внимание, что вы можете занять очередь только на ближайшие 3 дня.\n")
     await callback.answer()
     
 
@@ -106,6 +73,7 @@ async def take_a_place(message: types.Message, db: Database):
             await message.answer("✅ Место успешно занято!", reply_markup=kb.main)
         else:
             await message.answer("⚠️ Не удалось занять место. Возможно, вы уже записаны.", reply_markup=kb.main)
+        await db.save_brigade(brigade, message.from_user.id)
         return
     else:
         text = message.text or ""

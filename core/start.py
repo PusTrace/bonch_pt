@@ -6,18 +6,18 @@ from aiogram.fsm.context import FSMContext
 from core.db import Database
 from core.states import RegistrationStates
 import core.keyboards as kb
+import services.keyboards as service_kb
 start_router = Router()
 
 @start_router.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext, db: Database):
-        chats = await db.get_user(message.chat.id)
-        if chats:
-            await message.bot.send_message(
-                chat_id=message.chat.id,
-                text="С возвращением! 👋",
-                reply_markup=kb.main,
-                message_thread_id=message.message_thread_id
-            )
+        user = await db.get_user_info(message.chat.id)
+        if user:
+            schedule = await db.get_today_schedule(user[4])
+            text_lines = ["📋 Расписание на сегодня:\n"]
+            for date, pair, subject, auditorium, teacher, lesson_type in schedule:
+                text_lines.append(f"{pair:>2}. {subject:<35} | {auditorium:>16} | {teacher:<20} | {lesson_type:<15}")
+            await message.answer("\n".join(text_lines), reply_markup=kb.main)
         else:
             await message.answer("Привет! 👋 Похоже, вы здесь впервые.\n\nВведите вашу группу (например: ИКБ-31):")
             await state.set_state(RegistrationStates.waiting_for_group)
@@ -59,8 +59,18 @@ async def process_group(message: types.Message, state: FSMContext, db: Database)
             message_thread_id=message.message_thread_id
         )
 
-@start_router.message(F.text == 'Написать свой сервис')
-async def write_service(message: types.Message):
-    await message.answer("Исходный код проекта: github.com/PusTrace/bonch_pt\n"
-                         "Стать разработчиком: 1) прочитать README проекта, 2) написать с своим сервисом:t.me/PusTrace.")
-    
+@start_router.callback_query(F.data == 'other')
+async def other(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=service_kb.main)
+
+@start_router.callback_query(F.data == 'became_developer')
+async def became_developer(callback: types.CallbackQuery, db: Database):
+    await callback.message.answer("Чтобы стать разработчиком, выполните следующие шаги:\n"
+                                   "1) Прочитайте README проекта. github.com/PusTrace/bonch_pt2\n"
+                                   "2) Напишите: t.me/PusTrace.")
+    user = await db.get_user_info(callback.message.chat.id)
+    schedule = await db.get_today_schedule(user[4])
+    text_lines = ["📋 Расписание на сегодня:\n"]
+    for date, pair, subject, auditorium, teacher, lesson_type in schedule:
+        text_lines.append(f"{pair:>2}. {subject:<35} | {auditorium:>16} | {teacher:<20} | {lesson_type:<15}")
+    await callback.message.answer("\n".join(text_lines), reply_markup=kb.main)
