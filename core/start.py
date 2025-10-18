@@ -25,7 +25,7 @@ async def cmd_start(message: types.Message, state: FSMContext, db: Database):
 
 @start_router.message(RegistrationStates.waiting_for_group)
 async def process_group(message: types.Message, state: FSMContext, db: Database):
-    group = message.text.strip()
+    group = message.text.strip().upper()
     chat_id = message.chat.id
     user_id = message.from_user.id
     if chat_id != user_id:
@@ -66,7 +66,7 @@ async def other(callback: types.CallbackQuery):
 @start_router.callback_query(F.data == 'became_developer')
 async def became_developer(callback: types.CallbackQuery, db: Database):
     await callback.message.answer("Чтобы стать разработчиком, выполните следующие шаги:\n"
-                                   "1) Прочитайте README проекта. github.com/PusTrace/bonch_pt2\n"
+                                   "1) Прочитайте README проекта. github.com/PusTrace/bonch_pt\n"
                                    "2) Напишите: t.me/PusTrace.")
     user = await db.get_user_info(callback.message.chat.id)
     schedule = await db.get_today_schedule(user[4])
