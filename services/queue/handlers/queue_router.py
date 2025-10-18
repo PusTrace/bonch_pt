@@ -25,8 +25,10 @@ async def handle_queue_callback(callback: types.CallbackQuery, db: Database):
     thread_id = callback.message.message_thread_id
     if callback.data == "queue_today":
         date = datetime.now().date()
-    else:
+    elif callback.data == "queue_tomorrow":
         date = datetime.now().date() + timedelta(days=1)
+    elif callback.data == "queue_day_after_tomorrow":
+        date = datetime.now().date() + timedelta(days=2)
     
     queue = await db.get_queue(date)
     text_lines = ["📋 Очередь:\n"]
@@ -54,7 +56,7 @@ async def take_a_place(message: types.Message, db: Database):
     brigade = user_info[6]
     if brigade is None:
         text = message.text or ""
-        parts = text.split(maxsplit=2)
+        parts = text.split()
         if len(parts) < 3:
             await message.answer("⚠️ Неверный формат. /take_a_place <Абревиатура предмета> <номер бригады>")
             return
@@ -76,7 +78,7 @@ async def take_a_place(message: types.Message, db: Database):
         return
     else:
         text = message.text or ""
-        parts = text.split(maxsplit=1)
+        parts = text.split()
         if len(parts) < 2:
             await message.answer("⚠️ Неверный формат. /take_a_place <Абревиатура предмета>")
             return
