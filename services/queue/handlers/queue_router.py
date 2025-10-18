@@ -87,4 +87,4 @@ async def take_a_place(message: types.Message, db: Database):
         if success:
             await message.answer("✅ Место успешно занято!", reply_markup=kb.main)
         else:
-            await message.answer("⚠️ Не удалось занять место. Возможно, вы уже записаны.", reply_markup=kb.main)
+            await message.answer("⚠️ Не удалось занять место.", reply_markup=kb.main)

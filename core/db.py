@@ -132,6 +132,7 @@ class Database:
     async def take_a_place(self, sect: str, subject: str, brigade_number: int):
         async with self.pool.acquire() as conn:
             subject = subject.upper()
+            print(subject)
             abbriviatures = {
                 "ASTRA": "Безопасность Astra-Linux",
                 "ББЛС": "Безопасность беспроводных локальных сетей",
@@ -144,7 +145,7 @@ class Database:
             }
             if subject in abbriviatures:
                 full_subject = abbriviatures[subject]
-
+                print(sect, full_subject, brigade_number)
                 result = await conn.execute("""
                     INSERT INTO queue (sect, subject, brigade_number, date)
                     SELECT 
