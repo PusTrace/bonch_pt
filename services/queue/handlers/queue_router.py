@@ -44,7 +44,7 @@ async def queue_main(callback: types.CallbackQuery, db: Database):
             message_thread_id=thread_id
         )
     else:
-        await callback.message.answer("Панель управления очередью:", reply_markup=kb.kb_inline)
+        await callback.message.answer("Панель управления очередью:", reply_markup=kb.main)
 
     await callback.answer()
 
