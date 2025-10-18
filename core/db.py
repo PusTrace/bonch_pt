@@ -137,8 +137,9 @@ class Database:
 
 
 
-    async def take_a_place(self, chat_id: int, subject: str, brigade_number: int):
+    async def take_a_place(self, sect: str, subject: str, brigade_number: int):
         async with self.pool.acquire() as conn:
+            subject = subject.upper()
             abbriviatures = {
                 "ASTRA": "Безопасность Astra-Linux",
                 "ББЛС": "Безопасность беспроводных локальных сетей",
@@ -149,25 +150,22 @@ class Database:
                 "ПАСЗИ": "Программно-аппаратные средства защиты информации",
                 "ОИПОИБ": "Организационное и правовое обеспечение информационной безопасности"
             }
-            
             if subject in abbriviatures:
                 full_subject = abbriviatures[subject]
 
                 result = await conn.execute("""
-                    INSERT INTO queue (chat_id, subject, brigade_number, date)
+                    INSERT INTO queue (sect, subject, brigade_number, date)
                     SELECT 
-                        u.chat_id, 
+                        $1 AS sect, 
                         $2 AS subject, 
                         $3 AS brigade_number, 
                         s.date
-                    FROM users u
-                    JOIN schedule s 
-                        ON s.sect = u.sect 
+                    FROM schedule s
+                    WHERE s.sect = $1
                     AND s.subject = $2
                     AND s.date >= NOW() 
                     AND s.date < NOW() + INTERVAL '2 days'
-                    WHERE u.chat_id = $1
-                """, chat_id, full_subject, brigade_number)
+                """, sect, full_subject, brigade_number)
                 
                 # result выглядит как "INSERT 0 1"
                 if result.endswith("1"):
@@ -192,3 +190,10 @@ class Database:
                 INSERT INTO service_topics (service, chat_id, thread_id)
                 VALUES ($1, $2, $3)
             """, service, chat_id, thread_id)
+
+    async def get_user_info(self, user_id: int):
+        async with self.pool.acquire() as conn:
+            user_info = await conn.fetchrow("""
+                SELECT * FROM users WHERE chat_id = $1
+            """, user_id)
+            return user_info

@@ -74,29 +74,50 @@ async def handle_queue_callback(callback: types.CallbackQuery, db: Database):
 
 @router.callback_query(F.data == "how_to_queue")
 async def how_to_queue(callback: types.CallbackQuery):
-    await callback.message.answer("Чтобы занять очередь, введите команду: /take_a_place <Абривиатура предмета> <номер бригады> \n"
+    await callback.message.bot.send_message("Чтобы занять очередь, введите команду: /take_a_place <Абривиатура предмета> <номер бригады> \n"
                          "Пример: /take_a_place ОМВКС 31\n"
                          "Обратите внимание, что вы можете занять очередь только на ближайшие 2 дня.\n",)
+    await callback.answer()
     
 
 @router.message(Command("take_a_place"))
 async def take_a_place(message: types.Message, db: Database):
-    text = message.text or ""
-    parts = text.split(maxsplit=2)
-    if len(parts) < 3:
-        await message.answer("⚠️ Неверный формат. Используйте: /take_a_place <Абревиатура> <номер бригады>")
+    user_info = await db.get_user_info(message.from_user.id)
+    sect = user_info[5]
+    brigade = user_info[6]
+    if brigade is None:
+        text = message.text or ""
+        parts = text.split(maxsplit=2)
+        if len(parts) < 3:
+            await message.answer("⚠️ Неверный формат. /take_a_place <Абревиатура предмета> <номер бригады>")
+            return
+        await message.answer("⚠️ Вы не состоите в бригаде. Используйте: /take_a_place <Абревиатура предмета> <номер бригады>")
+        
+        _, subject, brigade = parts
+
+        try:
+            brigade = int(brigade)
+        except ValueError:
+            await message.answer("⚠️ Номер бригады должен быть числом!")
+            return
+
+        success = await db.take_a_place(sect, subject, brigade)
+        if success:
+            await message.bot.send_message("✅ Место успешно занято!", reply_markup=kb.main)
+        else:
+            await message.bot.send_message("⚠️ Не удалось занять место. Возможно, вы уже записаны.", reply_markup=kb.main)
         return
-
-    _, subject, brigade_number = parts
-
-    try:
-        brigade_number = int(brigade_number)
-    except ValueError:
-        await message.answer("⚠️ Номер бригады должен быть числом!")
-        return
-
-    success = await db.take_a_place(message.from_user.id, subject, brigade_number)
-    if success:
-        await message.answer("✅ Место успешно занято!", reply_markup=kb.main)
     else:
-        await message.answer("⚠️ Не удалось занять место. Возможно, вы уже записаны.", reply_markup=kb.main)
+        text = message.text or ""
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2:
+            await message.answer("⚠️ Неверный формат. /take_a_place <Абревиатура предмета>")
+            return
+
+        _, subject = parts
+
+        success = await db.take_a_place(sect, subject, brigade)
+        if success:
+            await message.bot.send_message("✅ Место успешно занято!", reply_markup=kb.main)
+        else:
+            await message.bot.send_message("⚠️ Не удалось занять место. Возможно, вы уже записаны.", reply_markup=kb.main)
