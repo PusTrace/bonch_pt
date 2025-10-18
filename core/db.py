@@ -155,8 +155,7 @@ class Database:
                     FROM schedule s
                     WHERE s.sect = $1
                     AND s.subject = $2
-                    AND s.date >= NOW() 
-                    AND s.date < NOW() + INTERVAL '3 days'
+                    AND s.date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '3 days'
                 """, sect, full_subject, brigade_number)
                 
                 # result выглядит как "INSERT 0 1"

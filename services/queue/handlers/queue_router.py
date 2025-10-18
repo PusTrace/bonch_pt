@@ -58,7 +58,6 @@ async def take_a_place(message: types.Message, db: Database):
         if len(parts) < 3:
             await message.answer("⚠️ Неверный формат. /take_a_place <Абревиатура предмета> <номер бригады>")
             return
-        await message.answer("⚠️ Вы не состоите в бригаде. Используйте: /take_a_place <Абревиатура предмета> <номер бригады>")
         
         _, subject, brigade = parts
 
