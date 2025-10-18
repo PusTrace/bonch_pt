@@ -83,7 +83,7 @@ async def how_to_queue(callback: types.CallbackQuery):
 @router.message(Command("take_a_place"))
 async def take_a_place(message: types.Message, db: Database):
     user_info = await db.get_user_info(message.from_user.id)
-    sect = user_info[5]
+    sect = user_info[4]
     brigade = user_info[6]
     if brigade is None:
         text = message.text or ""
