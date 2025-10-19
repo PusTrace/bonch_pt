@@ -32,10 +32,10 @@ async def main():
     print("3️⃣ Роутеры")
     register_routers(dp)
 
-    print("4️⃣ Планировщик")
-    scheduler = AsyncIOScheduler()
-    init_scheduler(scheduler, bot, db)
-    scheduler.start()
+    # print("4️⃣ Планировщик")
+    # scheduler = AsyncIOScheduler()
+    # init_scheduler(scheduler, bot, db)
+    # scheduler.start()
 
     print("5️⃣ Проверка живости")
     await bot.send_message(1185330189, "✅ Бот запущен и работает!")
