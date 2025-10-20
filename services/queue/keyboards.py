@@ -3,8 +3,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 main = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Очередь на сегодня", callback_data="queue_today"), InlineKeyboardButton(text="Очередь на завтра", callback_data="queue_tomorrow")],
-        [InlineKeyboardButton(text="Очередь послезавтра", callback_data="queue_day_after_tomorrow"), InlineKeyboardButton(text="Как занять очередь?", callback_data="how_to_queue")],
-        [InlineKeyboardButton(text="Абревиатуры предметов", callback_data="abbreviations")]
+        [InlineKeyboardButton(text="Показать очередь на дату", callback_data="queue_custom_date")],
+        [InlineKeyboardButton(text="Абревиатуры предметов", callback_data="abbreviations"), InlineKeyboardButton(text="Занять очередь(GUI)", callback_data="take_queue")],
+        [InlineKeyboardButton(text="Вернуться к сервисам", callback_data="main")]
     ]
 )

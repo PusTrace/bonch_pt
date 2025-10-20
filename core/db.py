@@ -146,24 +146,25 @@ class Database:
             if subject in abbriviatures:
                 full_subject = abbriviatures[subject]
                 print(sect, full_subject, brigade_number)
-                result = await conn.execute("""
-                    INSERT INTO queue (sect, subject, brigade_number, date)
-                    SELECT 
-                        $1 AS sect, 
-                        $2 AS subject, 
-                        $3 AS brigade_number, 
-                        s.date
-                    FROM schedule s
-                    WHERE s.sect = $1
-                    AND s.subject = $2
-                    AND s.date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '3 days'
-                """, sect, full_subject, brigade_number)
-                
-                # result выглядит как "INSERT 0 1"
-                if result.endswith("1"):
-                    return True
-                else:
+                try:
+                    result = await conn.execute("""
+                        INSERT INTO queue (sect, subject, brigade_number, date)
+                        SELECT 
+                            $1 AS sect, 
+                            $2 AS subject, 
+                            $3 AS brigade_number, 
+                            s.date
+                        FROM schedule s
+                        WHERE s.sect = $1
+                        AND s.subject = $2
+                        AND s.date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '3 days'
+                        AND s.lesson_type IN ('Практические занятия', 'Лабораторная работа')
+                    """, sect, full_subject, brigade_number)
+                    return result.endswith("1")
+
+                except asyncpg.UniqueViolationError:
                     return False
+
 
             else:
                 return False
@@ -202,3 +203,24 @@ class Database:
             await conn.execute("""
                 UPDATE users SET brigade = $1 WHERE chat_id = $2
             """, brigade, user_id)
+            
+    async def get_subjects(self):
+        """Возвращает уникальные предметы с бригадами от 1 до 15"""
+        async with self.pool.acquire() as conn:
+            subjects = await conn.fetch("""
+                SELECT DISTINCT subject FROM schedule
+            """)
+            return subjects
+
+
+    async def get_user_brigade(self, user_id: int):
+        query = "SELECT brigade FROM users WHERE chat_id = $1"
+        result = await self.pool.fetchval(query, user_id)
+        return result
+
+    async def save_issue_report(self, user_id: int, issue_description: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                INSERT INTO issue_reports (user_id, description, created_at)
+                VALUES ($1, $2, NOW())
+            """, user_id, issue_description)

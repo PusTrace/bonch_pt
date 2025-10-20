@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from core.db import Database
 from core.states import RegistrationStates
 import core.keyboards as kb
-import services.keyboards as service_kb
 start_router = Router()
 
 @start_router.message(CommandStart())
@@ -61,16 +60,31 @@ async def process_group(message: types.Message, state: FSMContext, db: Database)
 
 @start_router.callback_query(F.data == 'other')
 async def other(callback: types.CallbackQuery):
-    await callback.message.edit_reply_markup(reply_markup=service_kb.main)
+    await callback.message.edit_reply_markup(reply_markup=kb.service_keyboard)
 
 @start_router.callback_query(F.data == 'became_developer')
 async def became_developer(callback: types.CallbackQuery, db: Database):
-    await callback.message.answer("Чтобы стать разработчиком, выполните следующие шаги:\n"
-                                   "1) Прочитайте README проекта. github.com/PusTrace/bonch_pt\n"
-                                   "2) Напишите: t.me/PusTrace.")
-    user = await db.get_user_info(callback.message.chat.id)
-    schedule = await db.get_today_schedule(user[4])
-    text_lines = ["📋 Расписание на сегодня:\n"]
-    for date, pair, subject, auditorium, teacher, lesson_type in schedule:
-        text_lines.append(f"{pair:>2}. {subject:<35} | {auditorium:>16} | {teacher:<20} | {lesson_type:<15}")
-    await callback.message.answer("\n".join(text_lines), reply_markup=kb.main)
+    await callback.message.edit_text(
+    "Чтобы стать разработчиком, выполните следующие шаги:\n"
+    "1) Прочитайте README проекта: github.com/PusTrace/bonch_pt\n"
+    "2) Напишите: t.me/PusTrace",
+    reply_markup=kb.main
+    )
+    await callback.answer()
+
+@start_router.callback_query(F.data == 'report_issue')
+async def report_issue(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "Напишите о проблеме:\n"
+    )
+    await state.set_state(RegistrationStates.waiting_for_report)
+    
+@start_router.message(RegistrationStates.waiting_for_report)
+async def report_issue(message: types.Message, state: FSMContext, db: Database):
+    issue_description = message.text.strip()
+    user_id = message.from_user.id
+
+    await db.save_issue_report(user_id, issue_description)
+
+    await state.clear()
+    await message.answer("Спасибо за ваш отчет! Мы рассмотрим его в ближайшее время.", reply_markup=kb.main)

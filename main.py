@@ -43,7 +43,7 @@ async def main():
     # 🧹 Корректное завершение при SIGINT / SIGTERM
     async def shutdown():
         print("🧹 Закрываю соединения...")
-        scheduler.shutdown(wait=False)
+        # scheduler.shutdown(wait=False)
         await db.close()  # закрываем пул
         await bot.session.close()
         print("🟢 Завершено корректно")
