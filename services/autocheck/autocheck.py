@@ -73,18 +73,20 @@ def login(email, password, driver):
     mail_input.send_keys(email)
     password_input = wait.until(EC.presence_of_element_located((By.ID, "parole")))
     password_input.send_keys(password)
-    btn_for_printin = wait.until(EC.presence_of_element_located((By.ID, "printButton")))
+    btn_for_printin = wait.until(EC.presence_of_element_located((By.ID, "logButton")))
     btn_for_printin.click()
     print("Логин выполнен.")
 
 def go_to_url(driver):
     print("Переход на страницу занятий...")
     wait = WebDriverWait(driver, 10)
-    open_learn = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#heading1 > h5 > div")))
+    open_learn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#heading1 > h5 > div")))
     open_learn.click()
-    go_to_scheduler = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#menu_li_6118")))
+    time.sleep(0.5)
+    go_to_scheduler = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#menu_li_6118")))
     go_to_scheduler.click()
     print("На странице расписания.")
+
 
 def check_in_bonch(end_time, driver):
     """
@@ -102,6 +104,7 @@ def check_in_bonch(end_time, driver):
             start_buttons = WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//a[contains(text(), 'Начать занятие')]"))
             )
+            driver.execute_script("arguments[0].scrollIntoView(true);", start_buttons[0])
             if start_buttons:
                 for button in start_buttons:
                     try:
@@ -124,13 +127,7 @@ def check_in_bonch(end_time, driver):
 
 
 
-def check(schedule):
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    driver_path = ChromeDriverManager().install()
-    driver = webdriver.Chrome(service=Service(driver_path), options=options)
+def check(schedule, driver):
     
     missed_lessons = 0
     for lesson in schedule:
@@ -152,8 +149,7 @@ def check(schedule):
             delta = (start_time - current_time).total_seconds()
             print(f"Ещё не время пары {pair}, жду {delta/60:.1f} минут...")
             time.sleep(max(delta, 0))
-            current_time = datetime.now().time()
-
+            current_time = datetime.now()
         # время пары
         print(f"Время пары {pair}, заходим на сайт...")
         driver.get("https://lk.sut.ru/cabinet/?printin=yes")
@@ -183,45 +179,64 @@ if __name__ == "__main__":
         "5": ("16:30", "18:05"),
         "6": ("18:15", "19:50")
     }
-    print("Инициализация базы данных...")
-    db = Database()
-    db.connect()
 
-    while True:
-        current_date = datetime.now().date()
-        print(f"Проверка расписания на {current_date}")
-        schedule, today_has_lessons = db.check_scheduler(current_date)
+    
+    print("Создание экземпляра браузера")
+    options = Options()
+    options.add_argument('--headless')   # или '--headless' в зависимости от версии
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    driver_path = ChromeDriverManager().install()
+    service = Service(driver_path)
+    driver = webdriver.Chrome(service=service, options=options)
+
+    try:
+        print("Инициализация базы данных...")
+        db = Database()
+        db.connect()
         
-        if today_has_lessons:
-            print("Сегодня есть пары.")
-            was_checked = check(schedule)
-            if was_checked:
-                now = datetime.now()
-                tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-                sleep_seconds = (tomorrow - now).total_seconds()
-                print(f"Жду до полуночи ({sleep_seconds/3600:.2f} часов)")
+        while True:
+            current_date = datetime.now().date()
+            print(f"Проверка расписания на {current_date}")
+            schedule, today_has_lessons = db.check_scheduler(current_date)
+            
+            if today_has_lessons:
+                print("Сегодня есть пары.")
+                was_checked = check(schedule, driver)
+                if was_checked:
+                    now = datetime.now()
+                    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    sleep_seconds = (tomorrow - now).total_seconds()
+                    print(f"Жду до полуночи ({sleep_seconds/3600:.2f} часов)")
+                    time.sleep(sleep_seconds)
+                    continue
+            else:
+                current_datetime = datetime.now()
+                next_date_row = schedule[0]
+                next_date = next_date_row[1]
+
+                if isinstance(next_date, date) and not isinstance(next_date, datetime):
+                    next_datetime = datetime.combine(next_date, datetime.min.time())
+                else:
+                    if next_date.tzinfo is not None:
+                        next_datetime=next_date.astimezone().replace(tzinfo=None)
+                    else:
+                        next_datetime = next_date
+
+                # убираем таймзону, если есть
+                if isinstance(next_datetime, datetime) and next_datetime.tzinfo is not None:
+                    next_datetime = next_datetime.astimezone().replace(tzinfo=None)
+
+                sleep_seconds = (next_datetime - current_datetime).total_seconds()
+
+
+                print(f"Сегодня пар нет. Жду до {next_date} ({sleep_seconds/60:.1f} минут)")
                 time.sleep(sleep_seconds)
                 continue
-        else:
-            current_datetime = datetime.now()
-            next_date_row = schedule[0]
-            next_date = next_date_row[1]
-
-            if isinstance(next_date, date) and not isinstance(next_date, datetime):
-                next_datetime = datetime.combine(next_date, datetime.min.time())
-            else:
-                if next_date.tzinfo is not None:
-                    next_datetime=next_date.astimezone().replace(tzinfo=None)
-                else:
-                    next_datetime = next_date
-
-            # убираем таймзону, если есть
-            if isinstance(next_datetime, datetime) and next_datetime.tzinfo is not None:
-                next_datetime = next_datetime.astimezone().replace(tzinfo=None)
-
-            sleep_seconds = (next_datetime - current_datetime).total_seconds()
-
-
-            print(f"Сегодня пар нет. Жду до {next_date} ({sleep_seconds/60:.1f} минут)")
-            time.sleep(sleep_seconds)
-            continue
+    finally:
+        print("Выключаю драйвер...")
+        try:
+            driver.quit()
+        except Exception:
+            driver.close()
+            driver.quit()

@@ -1,6 +1,0 @@
-services:
-  autocheck:
-    build: .
-    container_name: autocheck
-    restart: always
-    env_file: .env

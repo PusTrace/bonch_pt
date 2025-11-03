@@ -15,24 +15,24 @@ def connect_db(password):
     cursor = conn.cursor()
     return conn, cursor
 
-def push_schedule_to_db(cursor, entry):
+def push_schedule_to_db(cursor, entry, sect):
     cursor.execute(
         """
         INSERT INTO schedule (date, pair, subject, auditorium, teacher, lesson_type, sect)
-        VALUES (%s, %s, %s, %s, %s, %s, 'IKB-31')
-        ON CONFLICT (date, pair) DO NOTHING
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (date, pair, sect) DO NOTHING
         """,
-        entry
+        entry + (sect,)
     )
 
 
-def parse_bonch(cursor, current_date, duration):
+def parse_bonch(cursor, current_date, duration, sect):
     pairs = ["1", "2", "3", "4", "5", "6", "7"]
-
+    group = {"ИКБ-31": 56160, "ИКБ-32": 56161, "ИКБ-33": 56162, "ИКБ-34": 56163, "ИБС-31": 56172, "ИБС-32": 56173}
     for week in range(duration):
         week_start = current_date - timedelta(days=current_date.weekday())  
         url_date = week_start.strftime('%Y-%m-%d')
-        url = f"https://www.sut.ru/studentu/raspisanie/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya?group=56160&date={url_date}"
+        url = f"https://www.sut.ru/studentu/raspisanie/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya?group={group[sect]}&date={url_date}"
 
         cookies = {
             "PHPSESSID": "b524092011e6cd2d9b22e7eb18063e55"
@@ -74,7 +74,6 @@ def parse_bonch(cursor, current_date, duration):
                 lesson_type = block.find("div", {"class": "vt243"})
                 
                 if subject is None and teacher is None and auditorium is None and lesson_type is None:
-                    print(f"Пропущено: {subject, teacher, auditorium, lesson_type}")
                     pair_index += 1
                     continue
 
@@ -86,25 +85,27 @@ def parse_bonch(cursor, current_date, duration):
                     teacher.get_text(strip=True) if teacher is not None else None,
                     lesson_type.get_text(strip=True) if lesson_type is not None else None)
                 print(entry)
-                push_schedule_to_db(cursor, entry)
+                push_schedule_to_db(cursor, entry, sect)
                 pair_index += 1
                 
         current_date += timedelta(weeks=1)
 
 
 
-def last_date_from_db(cursor):
-    cursor.execute("SELECT MAX(date) FROM schedule WHERE sect='IKB-32'")
+def last_date_from_db(cursor, sect):
+    cursor.execute("SELECT MAX(date) FROM schedule WHERE sect=%s", (sect,))
     result = cursor.fetchone()
-    return result[0].date() if result[0] else datetime.strptime("2025-09-01", "%Y-%m-%d").date()
+    return result[0] if result[0] else datetime.strptime("2025-09-01", "%Y-%m-%d").date()
 
 
 if __name__ == "__main__":
     load_dotenv()
+    sect = "ИБС-32"
+    duration = 20
+    
     password = os.getenv("DB_PASSWORD")
     conn, cursor = connect_db(password)
-    current_date = last_date_from_db(cursor)
-    duration = 15
-    parse_bonch(cursor, current_date, duration)
+    current_date = last_date_from_db(cursor, sect)
+    parse_bonch(cursor, current_date, duration, sect)
     conn.commit()
     conn.close()
