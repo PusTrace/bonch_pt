@@ -25,7 +25,7 @@ ABBR = {
     "ОИПОИБ": "Организационное и правовое обеспечение информационной безопасности"
 }
 
-@router.callback_query(F.data == "statistic")
+@router.callback_query(F.data == "statistic_main")
 async def statistics_main(callback: types.CallbackQuery, db: Database):
         user = await db.get_user_info(callback.message.chat.id)
         if user:
