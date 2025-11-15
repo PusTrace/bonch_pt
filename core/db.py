@@ -224,3 +224,17 @@ class Database:
                 INSERT INTO issue_reports (user_id, description, created_at)
                 VALUES ($1, $2, NOW())
             """, user_id, issue_description)
+            
+    async def get_destinct_teachers(self):
+        async with self.pool.acquire() as conn:
+            teachers = await conn.fetch("""
+                SELECT DISTINCT teacher FROM schedule
+            """)
+            return teachers
+        
+    async def get_teacher_schedule(self, teacher):
+        async with self.pool.acquire() as conn:
+            schedule = await conn.fetch("""
+                SELECT date, pair, subject, auditorium, lesson_type, sect FROM schedule WHERE teacher = $1
+            """, teacher)
+            return schedule
