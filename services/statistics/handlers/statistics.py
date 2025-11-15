@@ -7,6 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime, timedelta
 
 
+from core import db
 from core.db import Database
 from core.states import QueueStates
 import core.keyboards as main_kb
@@ -47,20 +48,22 @@ async def statistics_teachers(callback: types.CallbackQuery, db: Database, state
     if not user:
         await callback.answer("Ошибка доступа", show_alert=True)
         return
+    
+    teachers_records = await db.get_distinct_teachers()
+    buttons = [
+        InlineKeyboardButton(
+            text=rec['teacher'],
+            callback_data=f"teacher_{rec['teacher']}"
+        )
+        for rec in teachers_records
+        if rec['teacher'] and rec['teacher'].strip()
+    ]
 
-    teachers = await db.get_destinct_teachers()
 
-    # создаём кнопки: один преподаватель → одна кнопка
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text=teacher, callback_data=f"teacher_{teacher}")]
-            for teacher in teachers
-        ]
-    )
 
     await callback.message.edit_text(
         "👨‍🏫 Выберите преподавателя:",
-        reply_markup=keyboard
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[button] for button in buttons])
     )
 
     await state.set_state("waiting_for_teacher")
@@ -76,7 +79,7 @@ async def teacher_schedule(callback: types.CallbackQuery, db: Database, state: F
         await callback.message.edit_text("❌ Нет расписания для этого преподавателя.", reply_markup=kb.main)
         return
 
-    text_lines = [f"📋 Расписание преподавателя: {teacher}\n"]
+    text_lines = [f"📋 Расписание преподавателя: {teacher} на 2 недели\n"]
 
     for date, pair, subject, auditorium, lesson_type, sect in schedule:
         text_lines.append(
