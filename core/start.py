@@ -99,7 +99,7 @@ async def get_ip(message: types.Message):
         return await message.answer("Access denied.")
 
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://ifconfig.me") as resp:
-            ip = await resp.text()
+        async with session.get("https://api.ipify.org?format=json") as resp:
+            ip_info = await resp.json()
 
-    await message.answer(f"Your IP is: {ip.strip()}")
+    await message.answer(f"Your IP is: {ip_info.get('ip')}")
