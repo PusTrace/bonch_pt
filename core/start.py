@@ -2,6 +2,7 @@ from aiogram import Router, types, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 
+import requests
 
 from core.db import Database
 from core.states import RegistrationStates
@@ -88,3 +89,12 @@ async def report_issue(message: types.Message, state: FSMContext, db: Database):
 
     await state.clear()
     await message.answer("Спасибо за ваш отчет! Мы рассмотрим его в ближайшее время.", reply_markup=kb.main)
+    
+@start_router.message(F.text == "getip")
+async def get_ip(message: types.Message):
+    user_id = message.from_user.id
+    if user_id != "1185330189":
+        print("Unauthorized access attempt to get IP")
+    else:
+        ip = requests.get('https://ifconfig.me').text
+        await message.answer(f"Your IP is: {ip}")  # Replace with actual IP retrieval logic

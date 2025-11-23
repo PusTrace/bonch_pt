@@ -93,6 +93,42 @@ async def teacher_schedule(callback: types.CallbackQuery, db: Database, state: F
     await callback.answer()
 
 
+@router.callback_query(F.data == "statistic_week")
+async def teacher_schedule(callback: types.CallbackQuery, db: Database):
+    user = await db.get_user_info(callback.message.chat.id)
+    
+    schedule = await db.get_week_schedule(user[4])
+
+    if not schedule:
+        await callback.message.edit_text("❌ Нет расписания для этой группы.", reply_markup=kb.main)
+        return
+
+    text_lines = [f"📋 Расписание группы: {user[4]} на неделю\n"]
+
+    for date, pair, subject, auditorium, lesson_type in schedule:
+        text_lines.append(
+            f"{date} | {pair:>2}. {subject:<35} | {auditorium:>10} | {lesson_type:<15}"
+        )
+
+    await callback.message.edit_text(
+        "\n".join(text_lines),
+        reply_markup=kb.main
+    )
+    await callback.answer()
+    
+    
+@router.callback_query(F.data == "statistic_progress")
+async def statistic_progress(callback: types.CallbackQuery):
+    await callback.message.edit_text("Здесь будет прогресс бар.", reply_markup=kb.main)
+    await callback.answer()
+    
+@router.callback_query(F.data == "statistic_add_task")
+async def statistic_add_task(callback: types.CallbackQuery, db: Database):
+    user = await db.get_user_info(callback.message.chat.id)
+    
+    await callback.message.edit_text("Здесь можно добавить лабу/задание.", reply_markup=kb.main)
+    await callback.answer()
+
 @router.callback_query(F.data == "main")
 async def main_menu(callback: types.CallbackQuery):
     await callback.message.edit_text("Вы вернулись в главное меню.", reply_markup=main_kb.main)
