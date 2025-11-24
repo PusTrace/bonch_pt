@@ -235,7 +235,7 @@ class Database:
     async def get_teacher_schedule(self, teacher):
         async with self.pool.acquire() as conn:
             schedule = await conn.fetch("""
-                SELECT date, pair, subject, auditorium, lesson_type, sect FROM schedule WHERE teacher = $1 and date>NOW() and date<NOW() + INTERVAL '14 days' order by date asc
+                SELECT date, pair, subject, auditorium, lesson_type, sect FROM schedule WHERE teacher = $1 and date>=CURRENT_DATE and date<=CURRENT_DATE + INTERVAL '14 days' order by date asc
             """, teacher)
             return schedule
         
