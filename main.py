@@ -37,8 +37,8 @@ async def main():
     # init_scheduler(scheduler, bot, db)
     # scheduler.start()
 
-    print("5️⃣ Проверка живости")
-    await bot.send_message(1185330189, "✅ Бот запущен и работает!")
+    # print("5️⃣ Проверка живости")
+    # await bot.send_message(1185330189, "✅ Бот запущен и работает!")
     
     # 🧹 Корректное завершение при SIGINT / SIGTERM
     async def shutdown():

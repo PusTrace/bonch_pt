@@ -7,6 +7,7 @@ import requests, aiohttp
 from core.db import Database
 from core.states import RegistrationStates
 import core.keyboards as kb
+from core.utils import format_own_schedule
 start_router = Router()
 
 @start_router.message(CommandStart())
@@ -14,10 +15,7 @@ async def cmd_start(message: types.Message, state: FSMContext, db: Database):
         user = await db.get_user_info(message.chat.id)
         if user:
             schedule = await db.get_today_schedule(user[4])
-            text_lines = ["📋 Расписание на сегодня:\n"]
-            for date, pair, subject, auditorium, teacher, lesson_type in schedule:
-                text_lines.append(f"{pair:>2}. {subject:<35} | {auditorium:>16} | {teacher:<20} | {lesson_type:<15}")
-            await message.answer("\n".join(text_lines), reply_markup=kb.main)
+            await message.answer(format_own_schedule(schedule, "Расписание на сегодня"), reply_markup=kb.main)
         else:
             await message.answer("Привет! 👋 Похоже, вы здесь впервые.\n\nВведите вашу группу (например: ИКБ-31):")
             await state.set_state(RegistrationStates.waiting_for_group)

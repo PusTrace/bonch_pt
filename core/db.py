@@ -228,20 +228,100 @@ class Database:
     async def get_distinct_teachers(self):
         async with self.pool.acquire() as conn:
             teachers = await conn.fetch("""
-                SELECT DISTINCT teacher FROM schedule
+                SELECT DISTINCT teacher FROM schedule order by teacher asc
             """)
             return teachers
         
     async def get_teacher_schedule(self, teacher):
         async with self.pool.acquire() as conn:
             schedule = await conn.fetch("""
-                SELECT date, pair, subject, auditorium, lesson_type, sect FROM schedule WHERE teacher = $1 and date>=CURRENT_DATE and date<=CURRENT_DATE + INTERVAL '14 days' order by date asc
+                SELECT date, pair, subject, auditorium, lesson_type, sect FROM schedule WHERE teacher = $1 and date>=CURRENT_DATE and date<=CURRENT_DATE + INTERVAL '7 days' order by date asc
             """, teacher)
             return schedule
         
     async def get_week_schedule(self, sect):
         async with self.pool.acquire() as conn:
             schedule = await conn.fetch("""
-                SELECT date, pair, subject, auditorium, lesson_type FROM schedule WHERE sect = $1 and date>NOW() and date<NOW() + INTERVAL '7 days'
+                SELECT date, pair, subject, auditorium, teacher, lesson_type FROM schedule WHERE sect = $1 and date>NOW() and date<NOW() + INTERVAL '7 days'
             """, sect)
             return schedule
+        
+    async def get_user_subjects(self, user_id: int):
+        async with self.pool.acquire() as conn:
+            subjects = await conn.fetch("""
+                SELECT DISTINCT subject FROM schedule WHERE sect = (SELECT sect FROM users WHERE chat_id = $1) order by subject asc
+            """, user_id)
+            return subjects
+    
+    async def add_user_task(self, user_id: int, subject: str, task_type: str, is_brigade: bool):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                INSERT INTO tasks (user_id, subject, task_type, is_brigade)
+                VALUES ($1, $2, $3, $4)
+            """, user_id, subject, task_type, is_brigade)
+            
+    async def get_user_tasks(self, user_id: int):
+        async with self.pool.acquire() as conn:
+            tasks = await conn.fetch("""
+                -- Одиночные задачи пользователя
+                SELECT * 
+                FROM tasks
+                WHERE user_id = $1
+                AND is_brigade = false
+                AND (deadline >= CURRENT_DATE OR deadline IS NULL)
+                
+                UNION
+                
+                -- Бригадные задачи (общие для группы)
+                SELECT t.* 
+                FROM tasks t
+                JOIN users u1 ON t.user_id = u1.chat_id
+                JOIN users u2 ON u1.sect = u2.sect AND u1.brigade = u2.brigade
+                WHERE u2.chat_id = $1
+                AND t.is_brigade = true
+                AND u1.brigade IS NOT NULL
+                AND (t.deadline >= CURRENT_DATE OR t.deadline IS NULL)
+                
+                ORDER BY deadline ASC NULLS LAST
+            """, user_id)
+            return tasks
+        
+    async def update_task_deadline(self, user_id: int, task_name: str, new_deadline: date):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE tasks
+                SET deadline = $1
+                WHERE user_id = $2 AND task_type = $3
+            """, new_deadline, user_id, task_name)
+            
+    async def update_task_description(self, user_id: int, task_name: str, new_description: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE tasks
+                SET descriptions = $1
+                WHERE user_id = $2 AND task_type = $3
+            """, new_description, user_id, task_name)
+            
+    async def update_task_progress(self, user_id: int, task_name: str, new_progress: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE tasks
+                SET progress = $1
+                WHERE user_id = $2 AND task_type = $3
+            """, new_progress, user_id, task_name)
+            
+    async def update_user_group(self, user_id: int, new_group: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE users
+                SET sect = $1
+                WHERE chat_id = $2
+            """, new_group, user_id)
+            
+    async def update_user_brigade(self, user_id: int, new_brigade: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute("""
+                UPDATE users
+                SET brigade = $1
+                WHERE chat_id = $2
+            """, new_brigade, user_id)
