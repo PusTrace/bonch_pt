@@ -100,12 +100,12 @@ def last_date_from_db(cursor, sect):
 
 if __name__ == "__main__":
     load_dotenv()
-    sect = "ИБС-32"
-    duration = 20
-    
-    password = os.getenv("DB_PASSWORD")
-    conn, cursor = connect_db(password)
-    current_date = last_date_from_db(cursor, sect)
-    parse_bonch(cursor, current_date, duration, sect)
-    conn.commit()
-    conn.close()
+    sects = ["ИКБ-31", "ИКБ-32", "ИКБ-33", "ИКБ-34", "ИБС-31", "ИБС-32"]
+    duration = 3
+    for sect in sects:
+        password = os.getenv("DB_PASSWORD")
+        conn, cursor = connect_db(password)
+        current_date = last_date_from_db(cursor, sect)
+        parse_bonch(cursor, current_date, duration, sect)
+        conn.commit()
+        conn.close()
