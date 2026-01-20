@@ -1,20 +1,26 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+# core/keyboards.py
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-
-main = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="Статистика 📊", callback_data="statistic_main")],
-        [InlineKeyboardButton(text="Мои данные", callback_data="user_menu")],
-        [InlineKeyboardButton(text="ещё", callback_data="other")]
-    ]
+main = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Статистика 📊")],
+        [KeyboardButton(text="Мои данные")],
+        [KeyboardButton(text="Ещё")]
+    ],
+    resize_keyboard=True
 )
 
-service_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        #[InlineKeyboardButton(text="Дедлайны ⏰", callback_data="deadlines")],
-        #[InlineKeyboardButton(text="Очередь 📋", callback_data="queue_main")],
-        [InlineKeyboardButton(text="Стать разработчиком", callback_data="became_developer")],
-        [InlineKeyboardButton(text="Сообщить о баге", callback_data="report_issue")],
-        [InlineKeyboardButton(text="Вернуться к сервисам", callback_data="main")]
-    ]
+service_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Стать разработчиком")],
+        [KeyboardButton(text="Сообщить о баге")],
+        [KeyboardButton(text="◀️ Назад к главному")]
+    ],
+    resize_keyboard=True
 )
+
+def cancel_keyboard():
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="❌ Отмена")]],
+        resize_keyboard=True
+    )

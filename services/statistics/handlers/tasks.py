@@ -7,30 +7,27 @@ import services.statistics.keyboards as kb
 
 router = Router(name="statistics")
 
-@router.callback_query(F.data == "tasks")
-async def tasks_menu(callback: types.CallbackQuery):
-    await callback.message.answer(
-        text="📋 Меню задач:",
-        reply_markup=kb.tasks
-    )
-    await callback.answer()
-
 @router.message(F.text == "Показать задачи")
 async def tasks_progress(message: types.Message, db: Database):
     tasks = await db.get_user_tasks(message.chat.id)
     if not tasks:
-        return "У вас нет добавленных задач."
+        await message.answer("У вас нет добавленных задач.", reply_markup=kb.main)
+        return
+    
     result = "Ваши задачи:\n\n"
     for task in tasks:
         brigade_text = "Бригада" if task['is_brigade'] else "Одиночное"
-        result += f"Предмет: {task['subject']}\nТип: {brigade_text}\nНазвание: {task['task_type']}\nОписание: {task['descriptions']}\nДедлайн: {task['deadline']}\n\n"
-    await message.answer(result, reply_markup=kb.tasks)
+        deadline = task['deadline'].strftime('%d.%m.%Y') if task['deadline'] else "Не указан"
+        result += f"📌 {task['task_type']}\nПредмет: {task['subject']}\nТип: {brigade_text}\nОписание: {task['descriptions'] or 'Нет'}\nДедлайн: {deadline}\nПрогресс: {task['progress'] or 0}%\n\n"
+    
+    await message.answer(result, reply_markup=kb.main)
+
 @router.message(F.text == "Добавить задачу")
 async def add_task(message: types.Message, db: Database, state: FSMContext):
     user_subjects = await db.get_user_subjects(message.chat.id)
     
     if not user_subjects:
-        await message.answer("У вас нет предметов в расписании.", reply_markup=kb.tasks)
+        await message.answer("У вас нет предметов в расписании.", reply_markup=kb.main)
         return
     
     buttons = [[KeyboardButton(text=rec['subject'])] for rec in user_subjects if rec['subject'] and rec['subject'].strip()]
@@ -44,7 +41,7 @@ async def add_task(message: types.Message, db: Database, state: FSMContext):
 @router.message(F.text == "❌ Отмена", StateFilter("waiting_for_subject", "waiting_for_task_mode", "waiting_for_task_type"))
 async def cancel_task(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.tasks)
+    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_subject"))
 async def subject_selected(message: types.Message, db: Database, state: FSMContext):
@@ -111,16 +108,15 @@ async def task_type_entered(message: types.Message, db: Database, state: FSMCont
     mode_text = "Бригада" if is_brigade else "Одиночное"
     await message.answer(
         f"✅ Задание добавлено:\n\nПредмет: {subject}\nТип: {mode_text}\nНазвание: {task_type}",
-        reply_markup=kb.tasks
+        reply_markup=kb.main
     )
-    
-    
+
 @router.message(F.text == "Обновить дедлайн")
 async def update_deadline_start(message: types.Message, db: Database, state: FSMContext):
     user_tasks = await db.get_user_tasks(message.chat.id)
     
     if not user_tasks:
-        await message.answer("У вас нет задач.", reply_markup=kb.tasks)
+        await message.answer("У вас нет задач.", reply_markup=kb.main)
         return
     
     buttons = [[KeyboardButton(text=task['task_type'])] for task in user_tasks]
@@ -134,7 +130,7 @@ async def update_deadline_start(message: types.Message, db: Database, state: FSM
 @router.message(F.text == "❌ Отмена", StateFilter("waiting_for_deadline_task", "waiting_for_deadline_date"))
 async def cancel_deadline(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.tasks)
+    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_deadline_task"))
 async def deadline_task_selected(message: types.Message, db: Database, state: FSMContext):
@@ -168,7 +164,6 @@ async def deadline_date_entered(message: types.Message, db: Database, state: FSM
     data = await state.get_data()
     task_type = data.get("task_type")
     
-    # Парсим дату
     try:
         deadline = datetime.strptime(date_text, "%d.%m.%Y")
     except ValueError:
@@ -180,7 +175,7 @@ async def deadline_date_entered(message: types.Message, db: Database, state: FSM
     await state.clear()
     await message.answer(
         f"✅ Дедлайн обновлён:\n\nЗадача: {task_type}\nДедлайн: {deadline.strftime('%d.%m.%Y')}",
-        reply_markup=kb.tasks
+        reply_markup=kb.main
     )
 
 @router.message(F.text == "Обновить описание")
@@ -188,7 +183,7 @@ async def update_description_start(message: types.Message, db: Database, state: 
     user_tasks = await db.get_user_tasks(message.chat.id)
     
     if not user_tasks:
-        await message.answer("У вас нет задач.", reply_markup=kb.tasks)
+        await message.answer("У вас нет задач.", reply_markup=kb.main)
         return
     
     buttons = [[KeyboardButton(text=task['task_type'])] for task in user_tasks]
@@ -202,7 +197,7 @@ async def update_description_start(message: types.Message, db: Database, state: 
 @router.message(F.text == "❌ Отмена", StateFilter("waiting_for_description_task", "waiting_for_description_text"))
 async def cancel_description(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.tasks)
+    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_description_task"))
 async def description_task_selected(message: types.Message, db: Database, state: FSMContext):
@@ -239,17 +234,15 @@ async def description_text_entered(message: types.Message, db: Database, state: 
     await state.clear()
     await message.answer(
         f"✅ Описание обновлено:\n\nЗадача: {task_type}\nОписание: {description}",
-        reply_markup=kb.tasks
+        reply_markup=kb.main
     )
-    
-    
-    
-@router.message(F.text == "Обновить описание")
+
+@router.message(F.text == "Обновить прогресс")
 async def update_progress_start(message: types.Message, db: Database, state: FSMContext):
     user_tasks = await db.get_user_tasks(message.chat.id)
     
     if not user_tasks:
-        await message.answer("У вас нет задач.", reply_markup=kb.tasks)
+        await message.answer("У вас нет задач.", reply_markup=kb.main)
         return
     
     buttons = [[KeyboardButton(text=task['task_type'])] for task in user_tasks]
@@ -261,9 +254,9 @@ async def update_progress_start(message: types.Message, db: Database, state: FSM
     await state.set_state("waiting_for_progress_task")
 
 @router.message(F.text == "❌ Отмена", StateFilter("waiting_for_progress_task", "waiting_for_progress_text"))
-async def cancel_description(message: types.Message, state: FSMContext):
+async def cancel_progress(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.tasks)
+    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_progress_task"))
 async def progress_task_selected(message: types.Message, db: Database, state: FSMContext):
@@ -285,7 +278,7 @@ async def progress_task_selected(message: types.Message, db: Database, state: FS
     )
     
     await message.answer(
-        f"Задача: {task_type}\n\nВведите новое значение прогресса:",
+        f"Задача: {task_type}\n\nВведите процент выполнения (0-100):",
         reply_markup=cancel_kb
     )
 
@@ -295,10 +288,58 @@ async def progress_text_entered(message: types.Message, db: Database, state: FSM
     data = await state.get_data()
     task_type = data.get("task_type")
     
-    await db.update_task_progress(message.chat.id, task_type, progress)
+    try:
+        progress_int = int(progress)
+        if not 0 <= progress_int <= 100:
+            raise ValueError
+    except ValueError:
+        await message.answer("Введите число от 0 до 100")
+        return
+    
+    await db.update_task_progress(message.chat.id, task_type, progress_int)
     
     await state.clear()
     await message.answer(
-        f"✅ Прогресс обновлен:\n\nЗадача: {task_type}\nПрогресс: {progress}",
-        reply_markup=kb.tasks
+        f"✅ Прогресс обновлен:\n\nЗадача: {task_type}\nПрогресс: {progress_int}%",
+        reply_markup=kb.main
+    )
+
+@router.message(F.text == "Удалить задачу")
+async def delete_task_start(message: types.Message, db: Database, state: FSMContext):
+    user_tasks = await db.get_user_tasks(message.chat.id)
+    
+    if not user_tasks:
+        await message.answer("У вас нет задач.", reply_markup=kb.main)
+        return
+    
+    buttons = [[KeyboardButton(text=task['task_type'])] for task in user_tasks]
+    buttons.append([KeyboardButton(text="❌ Отмена")])
+    
+    tasks_kb = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
+    
+    await message.answer("Выберите задачу для удаления:", reply_markup=tasks_kb)
+    await state.set_state("waiting_for_delete_task")
+
+@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_delete_task"))
+async def cancel_delete(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer("Отменено.", reply_markup=kb.main)
+
+@router.message(StateFilter("waiting_for_delete_task"))
+async def delete_task_confirm(message: types.Message, db: Database, state: FSMContext):
+    task_type = message.text.strip()
+    
+    user_tasks = await db.get_user_tasks(message.chat.id)
+    valid_tasks = [task['task_type'] for task in user_tasks]
+    
+    if task_type not in valid_tasks:
+        await message.answer("Неверная задача. Выберите из списка выше.")
+        return
+    
+    await db.delete_user_task(message.chat.id, task_type)
+    
+    await state.clear()
+    await message.answer(
+        f"✅ Задача удалена:\n\n{task_type}",
+        reply_markup=kb.main
     )

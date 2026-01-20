@@ -1,7 +1,8 @@
+# schedule.py
 from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from aiogram.filters import StateFilter
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from core.db import Database
 import core.keyboards as main_kb
 import services.statistics.keyboards as kb
@@ -9,91 +10,82 @@ from core.utils import format_teacher_schedule, format_own_schedule
 
 router = Router(name="statistics")
 
-@router.callback_query(F.data == "statistic_main")
-async def statistics_main(callback: types.CallbackQuery, db: Database):
-        user = await db.get_user_info(callback.message.chat.id)
-        if user:
-            schedule = await db.get_today_schedule(user[4])
+@router.message(F.text == "Статистика 📊")
+async def statistics_main(message: types.Message, db: Database):
+    user = await db.get_user_info(message.chat.id)
+    if user:
+        schedule = await db.get_today_schedule(user[4])
+        await message.answer(
+            text=format_own_schedule(schedule, "Расписание на сегодня"),
+            reply_markup=kb.main
+        )
 
-            await callback.message.edit_text(
-                text=format_teacher_schedule(schedule, "Расписание на сегодня"),
-                reply_markup=kb.main
-            )
-
-            await callback.answer()
-
-@router.callback_query(F.data == "statistic_teachers")
-async def statistics_teachers(callback: types.CallbackQuery, db: Database, state: FSMContext):
-    user = await db.get_user_info(callback.message.chat.id)
+@router.message(F.text == "Показать расписание преподавателей")
+async def statistics_teachers(message: types.Message, db: Database, state: FSMContext):
+    user = await db.get_user_info(message.chat.id)
     if not user:
-        await callback.answer("Ошибка доступа", show_alert=True)
+        await message.answer("Ошибка доступа")
         return
     
     teachers_records = await db.get_distinct_teachers()
     buttons = [
-        InlineKeyboardButton(
-            text=rec['teacher'],
-            callback_data=f"teacher_{rec['teacher']}"
-        )
+        [KeyboardButton(text=rec['teacher'])]
         for rec in teachers_records
         if rec['teacher'] and rec['teacher'].strip()
     ]
-
-    await callback.message.edit_text(
-        "👨‍🏫 Выберите преподавателя:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[button] for button in buttons])
-    )
-
+    buttons.append([KeyboardButton(text="❌ Отмена")])
+    
+    teachers_kb = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
+    
+    await message.answer("👨‍🏫 Выберите преподавателя:", reply_markup=teachers_kb)
     await state.set_state("waiting_for_teacher")
 
-@router.callback_query(F.data.startswith("teacher_"))
-async def teacher_schedule(callback: types.CallbackQuery, db: Database, state: FSMContext):
-    teacher = callback.data[len("teacher_"):]  # вырезаем имя
+@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_teacher"))
+async def cancel_teacher(message: types.Message, state: FSMContext):
     await state.clear()
+    await message.answer("Отменено.", reply_markup=kb.main)
 
-    schedule = await db.get_teacher_schedule(teacher)
-
-    if not schedule:
-        await callback.message.edit_text("❌ Нет расписания для этого преподавателя.", reply_markup=kb.main)
+@router.message(StateFilter("waiting_for_teacher"))
+async def teacher_schedule(message: types.Message, db: Database, state: FSMContext):
+    teacher = message.text.strip()
+    
+    teachers_records = await db.get_distinct_teachers()
+    valid_teachers = [rec['teacher'] for rec in teachers_records if rec['teacher'] and rec['teacher'].strip()]
+    
+    if teacher not in valid_teachers:
+        await message.answer("Неверный преподаватель. Выберите из списка выше.")
         return
-
-
-    await callback.message.edit_text(
+    
+    await state.clear()
+    schedule = await db.get_teacher_schedule(teacher)
+    
+    if not schedule:
+        await message.answer("❌ Нет расписания для этого преподавателя.", reply_markup=kb.main)
+        return
+    
+    await message.answer(
         format_teacher_schedule(schedule, f"Расписание преподавателя: {teacher}"),
         reply_markup=kb.main
     )
-    await callback.answer()
 
-
-@router.callback_query(F.data == "statistic_week")
-async def teacher_schedule(callback: types.CallbackQuery, db: Database):
-    user = await db.get_user_info(callback.message.chat.id)
-    
+@router.message(F.text == "Показать расписание на неделю")
+async def week_schedule(message: types.Message, db: Database):
+    user = await db.get_user_info(message.chat.id)
     schedule = await db.get_week_schedule(user[4])
-
+    
     if not schedule:
-        await callback.message.edit_text("❌ Нет расписания для этой группы.", reply_markup=kb.main)
+        await message.answer("❌ Нет расписания для этой группы.", reply_markup=kb.main)
         return
-
-    await callback.message.edit_text(
+    
+    await message.answer(
         format_own_schedule(schedule, f"Расписание на неделю для группы: {user[4]}"),
         reply_markup=kb.main
     )
-    await callback.answer()
-    
-    
-@router.callback_query(F.data == "statistic_progress")
-async def statistic_progress(callback: types.CallbackQuery):
-    await callback.message.edit_text("Здесь будет прогресс бар.", reply_markup=kb.main)
-    await callback.answer()
-    
-@router.callback_query(F.data == "statistic_add_task")
-async def statistic_add_task(callback: types.CallbackQuery, db: Database):
-    user = await db.get_user_info(callback.message.chat.id)
-    
-    await callback.message.edit_text("Здесь можно добавить лабу/задание.", reply_markup=kb.main)
-    await callback.answer()
 
-@router.callback_query(F.data == "main")
-async def main_menu(callback: types.CallbackQuery):
-    await callback.message.edit_text("Вы вернулись в главное меню.", reply_markup=main_kb.main)
+@router.message(F.text == "Задачи")
+async def tasks_menu(message: types.Message):
+    await message.answer("📋 Меню задач:", reply_markup=kb.tasks)
+
+@router.message(F.text == "◀️ Назад к статистике")
+async def back_to_stats(message: types.Message):
+    await message.answer("Статистика:", reply_markup=kb.main)

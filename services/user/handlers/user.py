@@ -7,15 +7,7 @@ import services.user.keyboards as kb
 
 router = Router(name="user")
 
-@router.callback_query(F.data == "user_menu")
-async def user_menu(callback: types.CallbackQuery):
-    await callback.message.answer(
-        text="📋 Меню задач:",
-        reply_markup=kb.main
-    )
-    await callback.answer()
-
-@router.message(F.text == "Мой профиль")
+@router.message(F.text == "Мои данные")
 async def user_progress(message: types.Message, db: Database):
     user = await db.get_user_info(message.chat.id)
 

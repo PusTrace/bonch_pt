@@ -325,3 +325,14 @@ class Database:
                 SET brigade = $1
                 WHERE chat_id = $2
             """, new_brigade, user_id)
+            
+    async def delete_user_task(self, user_id, task):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                DELETE FROM tasks
+                WHERE user_id = $1 AND task_type = $2
+                """,
+                user_id,
+                task
+            )
