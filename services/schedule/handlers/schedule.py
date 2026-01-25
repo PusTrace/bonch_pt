@@ -4,14 +4,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from core.db import Database
-import core.keyboards as main_kb
-import services.statistics.keyboards as kb
+import services.schedule.keyboards as kb
 from core.utils import format_teacher_schedule, format_own_schedule
 
-router = Router(name="statistics")
+router = Router(name="schedule")
 
-@router.message(F.text == "Статистика 📊")
-async def statistics_main(message: types.Message, db: Database):
+@router.message(F.text == "Расписание 📊")
+async def schedule_main(message: types.Message, db: Database):
     user = await db.get_user_info(message.chat.id)
     if user:
         schedule = await db.get_today_schedule(user[4])
@@ -21,7 +20,7 @@ async def statistics_main(message: types.Message, db: Database):
         )
 
 @router.message(F.text == "Показать расписание преподавателей")
-async def statistics_teachers(message: types.Message, db: Database, state: FSMContext):
+async def schedule_teachers(message: types.Message, db: Database, state: FSMContext):
     user = await db.get_user_info(message.chat.id)
     if not user:
         await message.answer("Ошибка доступа")
@@ -39,11 +38,6 @@ async def statistics_teachers(message: types.Message, db: Database, state: FSMCo
     
     await message.answer("👨‍🏫 Выберите преподавателя:", reply_markup=teachers_kb)
     await state.set_state("waiting_for_teacher")
-
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_teacher"))
-async def cancel_teacher(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_teacher"))
 async def teacher_schedule(message: types.Message, db: Database, state: FSMContext):
@@ -81,11 +75,3 @@ async def week_schedule(message: types.Message, db: Database):
         format_own_schedule(schedule, f"Расписание на неделю для группы: {user[4]}"),
         reply_markup=kb.main
     )
-
-@router.message(F.text == "Задачи")
-async def tasks_menu(message: types.Message):
-    await message.answer("📋 Меню задач:", reply_markup=kb.tasks)
-
-@router.message(F.text == "◀️ Назад к статистике")
-async def back_to_stats(message: types.Message):
-    await message.answer("Статистика:", reply_markup=kb.main)

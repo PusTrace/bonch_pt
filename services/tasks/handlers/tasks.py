@@ -3,10 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from core.db import Database
-import services.statistics.keyboards as kb
+import services.tasks.keyboards as kb
 
-router = Router(name="statistics")
+router = Router(name="tasks")
 
+@router.message(F.text == "Задачи")
 @router.message(F.text == "Показать задачи")
 async def tasks_progress(message: types.Message, db: Database):
     tasks = await db.get_user_tasks(message.chat.id)
@@ -37,11 +38,6 @@ async def add_task(message: types.Message, db: Database, state: FSMContext):
     
     await message.answer("Выберите предмет:", reply_markup=subjects_kb)
     await state.set_state("waiting_for_subject")
-
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_subject", "waiting_for_task_mode", "waiting_for_task_type"))
-async def cancel_task(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_subject"))
 async def subject_selected(message: types.Message, db: Database, state: FSMContext):
@@ -127,11 +123,6 @@ async def update_deadline_start(message: types.Message, db: Database, state: FSM
     await message.answer("Выберите задачу для обновления дедлайна:", reply_markup=tasks_kb)
     await state.set_state("waiting_for_deadline_task")
 
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_deadline_task", "waiting_for_deadline_date"))
-async def cancel_deadline(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
-
 @router.message(StateFilter("waiting_for_deadline_task"))
 async def deadline_task_selected(message: types.Message, db: Database, state: FSMContext):
     task_type = message.text.strip()
@@ -194,11 +185,6 @@ async def update_description_start(message: types.Message, db: Database, state: 
     await message.answer("Выберите задачу для обновления описания:", reply_markup=tasks_kb)
     await state.set_state("waiting_for_description_task")
 
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_description_task", "waiting_for_description_text"))
-async def cancel_description(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
-
 @router.message(StateFilter("waiting_for_description_task"))
 async def description_task_selected(message: types.Message, db: Database, state: FSMContext):
     task_type = message.text.strip()
@@ -253,7 +239,7 @@ async def update_progress_start(message: types.Message, db: Database, state: FSM
     await message.answer("Выберите задачу для обновления процента:", reply_markup=tasks_kb)
     await state.set_state("waiting_for_progress_task")
 
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_progress_task", "waiting_for_progress_text"))
+@router.message(F.text == "❌ Отмена", StateFilter("*"))
 async def cancel_progress(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer("Отменено.", reply_markup=kb.main)
@@ -319,11 +305,6 @@ async def delete_task_start(message: types.Message, db: Database, state: FSMCont
     
     await message.answer("Выберите задачу для удаления:", reply_markup=tasks_kb)
     await state.set_state("waiting_for_delete_task")
-
-@router.message(F.text == "❌ Отмена", StateFilter("waiting_for_delete_task"))
-async def cancel_delete(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
 
 @router.message(StateFilter("waiting_for_delete_task"))
 async def delete_task_confirm(message: types.Message, db: Database, state: FSMContext):

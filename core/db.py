@@ -184,11 +184,11 @@ class Database:
                 VALUES ($1, $2, $3)
             """, service, chat_id, thread_id)
 
-    async def get_user_info(self, user_id: int):
+    async def get_user_info(self, chat_id: int):
         async with self.pool.acquire() as conn:
             user_info = await conn.fetchrow("""
                 SELECT * FROM users WHERE chat_id = $1
-            """, user_id)
+            """, chat_id)
             return user_info
         
     async def get_today_schedule(self, sect):
@@ -198,11 +198,11 @@ class Database:
             """, sect)
             return schedule
     
-    async def save_brigade(self, brigade, user_id):
+    async def save_brigade(self, brigade, chat_id):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE users SET brigade = $1 WHERE chat_id = $2
-            """, brigade, user_id)
+            """, brigade, chat_id)
             
     async def get_subjects(self):
         """Возвращает уникальные предметы с бригадами от 1 до 15"""
@@ -213,17 +213,17 @@ class Database:
             return subjects
 
 
-    async def get_user_brigade(self, user_id: int):
+    async def get_user_brigade(self, chat_id: int):
         query = "SELECT brigade FROM users WHERE chat_id = $1"
-        result = await self.pool.fetchval(query, user_id)
+        result = await self.pool.fetchval(query, chat_id)
         return result
 
-    async def save_issue_report(self, user_id: int, issue_description: str):
+    async def save_issue_report(self, chat_id: int, issue_description: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                INSERT INTO issue_reports (user_id, description, created_at)
+                INSERT INTO issue_reports (chat_id, description, created_at)
                 VALUES ($1, $2, NOW())
-            """, user_id, issue_description)
+            """, chat_id, issue_description)
             
     async def get_distinct_teachers(self):
         async with self.pool.acquire() as conn:
@@ -246,27 +246,27 @@ class Database:
             """, sect)
             return schedule
         
-    async def get_user_subjects(self, user_id: int):
+    async def get_user_subjects(self, chat_id: int):
         async with self.pool.acquire() as conn:
             subjects = await conn.fetch("""
                 SELECT DISTINCT subject FROM schedule WHERE sect = (SELECT sect FROM users WHERE chat_id = $1) order by subject asc
-            """, user_id)
+            """, chat_id)
             return subjects
     
-    async def add_user_task(self, user_id: int, subject: str, task_type: str, is_brigade: bool):
+    async def add_user_task(self, chat_id: int, subject: str, task_type: str, is_brigade: bool):
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                INSERT INTO tasks (user_id, subject, task_type, is_brigade)
+                INSERT INTO tasks (chat_id, subject, task_type, is_brigade)
                 VALUES ($1, $2, $3, $4)
-            """, user_id, subject, task_type, is_brigade)
+            """, chat_id, subject, task_type, is_brigade)
             
-    async def get_user_tasks(self, user_id: int):
+    async def get_user_tasks(self, chat_id: int):
         async with self.pool.acquire() as conn:
             tasks = await conn.fetch("""
                 -- Одиночные задачи пользователя
                 SELECT * 
                 FROM tasks
-                WHERE user_id = $1
+                WHERE chat_id = $1
                 AND is_brigade = false
                 AND (deadline >= CURRENT_DATE OR deadline IS NULL)
                 
@@ -275,7 +275,7 @@ class Database:
                 -- Бригадные задачи (общие для группы)
                 SELECT t.* 
                 FROM tasks t
-                JOIN users u1 ON t.user_id = u1.chat_id
+                JOIN users u1 ON t.chat_id = u1.chat_id
                 JOIN users u2 ON u1.sect = u2.sect AND u1.brigade = u2.brigade
                 WHERE u2.chat_id = $1
                 AND t.is_brigade = true
@@ -283,56 +283,66 @@ class Database:
                 AND (t.deadline >= CURRENT_DATE OR t.deadline IS NULL)
                 
                 ORDER BY deadline ASC NULLS LAST
-            """, user_id)
+            """, chat_id)
             return tasks
         
-    async def update_task_deadline(self, user_id: int, task_name: str, new_deadline: date):
+    async def update_task_deadline(self, chat_id: int, task_name: str, new_deadline: date):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE tasks
                 SET deadline = $1
-                WHERE user_id = $2 AND task_type = $3
-            """, new_deadline, user_id, task_name)
+                WHERE chat_id = $2 AND task_type = $3
+            """, new_deadline, chat_id, task_name)
             
-    async def update_task_description(self, user_id: int, task_name: str, new_description: str):
+    async def update_task_description(self, chat_id: int, task_name: str, new_description: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE tasks
                 SET descriptions = $1
-                WHERE user_id = $2 AND task_type = $3
-            """, new_description, user_id, task_name)
+                WHERE chat_id = $2 AND task_type = $3
+            """, new_description, chat_id, task_name)
             
-    async def update_task_progress(self, user_id: int, task_name: str, new_progress: str):
+    async def update_task_progress(self, chat_id: int, task_name: str, new_progress: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE tasks
                 SET progress = $1
-                WHERE user_id = $2 AND task_type = $3
-            """, new_progress, user_id, task_name)
+                WHERE chat_id = $2 AND task_type = $3
+            """, new_progress, chat_id, task_name)
             
-    async def update_user_group(self, user_id: int, new_group: str):
+    async def update_user_group(self, chat_id: int, new_group: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE users
                 SET sect = $1
                 WHERE chat_id = $2
-            """, new_group, user_id)
+            """, new_group, chat_id)
             
-    async def update_user_brigade(self, user_id: int, new_brigade: str):
+    async def update_user_brigade(self, chat_id: int, new_brigade: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 UPDATE users
                 SET brigade = $1
                 WHERE chat_id = $2
-            """, new_brigade, user_id)
+            """, new_brigade, chat_id)
             
-    async def delete_user_task(self, user_id, task):
+    async def delete_user_task(self, chat_id, task):
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
                 DELETE FROM tasks
-                WHERE user_id = $1 AND task_type = $2
+                WHERE chat_id = $1 AND task_type = $2
                 """,
-                user_id,
+                chat_id,
                 task
+            )
+
+    async def remove_user_data(self, chat_id):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                DELETE FROM users
+                WHERE chat_id = $1
+                """,
+                chat_id, 
             )

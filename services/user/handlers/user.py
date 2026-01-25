@@ -41,3 +41,9 @@ async def process_new_brigade(message: types.Message, state: FSMContext, db: Dat
     await db.update_user_brigade(message.chat.id, new_brigade)
     await message.answer(f"Ваша бригада успешно изменена на: {new_brigade}", reply_markup=kb.main)
     await state.clear()
+    
+@router.message(F.text == "Удалить мои данные")
+async def remove_user_data(message: types.Message, db: Database):
+    chat_id = message.chat.id
+    await db.remove_user_data(chat_id)
+    await message.answer(f"Ваши данные были удалены, нажмите /start чтобы снова пользоваться ботом", reply_markup=types.ReplyKeyboardRemove())
