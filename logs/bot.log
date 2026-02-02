@@ -1,0 +1,861 @@
+2026-02-02 17:11:02 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 17:11:02 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 17:11:02 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 17:11:02 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 17:11:02 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 17:11:02 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 17:11:02 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 17:11:09 | ERROR   | BONCH_BOT            | Handler crashed
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 41, in tasks_progress
+    state = message.bot.get('fsm_context')  # или передать state в хэндлер
+            ^^^^^^^^^^^^^^^
+AttributeError: 'Bot' object has no attribute 'get'
+2026-02-02 17:11:09 | ERROR   | aiogram.event        | Cause exception while process update id=680168862 by bot id=7954654793
+AttributeError: 'Bot' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+    response = await self.feed_update(bot, update, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 56, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/fsm/middleware.py", line 42, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 41, in tasks_progress
+    state = message.bot.get('fsm_context')  # или передать state в хэндлер
+            ^^^^^^^^^^^^^^^
+AttributeError: 'Bot' object has no attribute 'get'
+2026-02-02 17:12:49 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 17:12:49 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 17:12:49 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 17:12:49 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 17:12:49 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 17:12:49 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 17:12:49 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 18:44:48 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 18:44:48 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 18:44:48 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 18:44:48 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 18:44:48 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 18:44:48 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 18:44:48 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 18:53:34 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 18:53:34 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 18:53:34 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 18:53:34 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 18:53:34 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 18:53:34 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 18:53:34 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 18:57:11 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 18:57:11 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 18:57:11 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 18:57:11 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 18:57:11 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 18:57:11 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 18:57:11 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 18:58:03 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 18:58:03 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 18:58:03 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 18:58:03 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 18:58:03 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 18:58:03 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 18:58:03 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 18:58:13 | ERROR   | BONCH_BOT            | Handler crashed
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 72, in next_task_page
+    await callback.message.edit_text(pages[index], reply_markup=kb)
+                                     ~~~~~^^^^^^^
+IndexError: list index out of range
+2026-02-02 18:58:13 | ERROR   | aiogram.event        | Cause exception while process update id=680168895 by bot id=7954654793
+IndexError: list index out of range
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+    response = await self.feed_update(bot, update, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 56, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/fsm/middleware.py", line 42, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 72, in next_task_page
+    await callback.message.edit_text(pages[index], reply_markup=kb)
+                                     ~~~~~^^^^^^^
+IndexError: list index out of range
+2026-02-02 19:00:27 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:00:27 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:00:27 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:00:27 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:00:27 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:00:27 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:00:27 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:07:26 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:07:26 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:07:26 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:07:26 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:07:26 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:07:26 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:07:26 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:08:27 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:08:27 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:08:27 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:08:27 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:08:27 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:08:27 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:08:27 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:11:42 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:11:42 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:11:42 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:11:42 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:11:42 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:11:42 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:11:42 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:29:11 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:29:11 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:29:11 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:29:11 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:29:11 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:29:11 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:29:11 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:30:07 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:30:07 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:30:07 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:30:07 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:30:07 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:30:07 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:30:07 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:41:19 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:41:19 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:41:19 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:41:19 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:41:19 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:41:19 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:41:19 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:42:53 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:42:53 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:42:53 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:42:53 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:42:53 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:42:53 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:42:53 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:43:40 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:43:40 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:43:40 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:43:40 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:43:40 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:43:40 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:43:40 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:44:15 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:44:15 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:44:15 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:44:15 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:44:15 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:44:15 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:44:15 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 19:47:54 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 19:47:54 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 19:47:54 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 19:47:54 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 19:47:54 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 19:47:54 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 19:47:54 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:15:12 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:15:12 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:15:12 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:15:12 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:15:12 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:15:12 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:15:12 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:17:46 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:17:46 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:17:46 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:17:46 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:17:46 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:17:46 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:17:46 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:19:41 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:19:41 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:19:41 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:19:41 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:19:41 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:19:41 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:19:41 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:19:51 | ERROR   | BONCH_BOT            | Handler crashed
+Traceback (most recent call last):
+  File "asyncpg/protocol/prepared_stmt.pyx", line 175, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+  File "asyncpg/protocol/codecs/base.pyx", line 227, in asyncpg.protocol.protocol.Codec.encode
+  File "asyncpg/protocol/codecs/base.pyx", line 129, in asyncpg.protocol.protocol.Codec.encode_scalar
+  File "asyncpg/pgproto/./codecs/datetime.pyx", line 97, in asyncpg.pgproto.pgproto.date_encode
+AttributeError: 'builtin_function_or_method' object has no attribute 'toordinal'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 553, in auto_schedule_confirmed
+    schedule = await calc_auto_schedule(user, db)  # ДОБАВИЛ db
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 604, in calc_auto_schedule
+    schedule = await db.get_schedule(sect)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/db.py", line 391, in get_schedule
+    schedule = await conn.fetch("""
+               ^^^^^^^^^^^^^^^^^^^^
+        select * from schedule where sect=$1 and date >= $2 and lesson_type in ('Практические занятия', 'Лабораторная работа')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """, sect, datetime.now().date)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 690, in fetch
+    return await self._execute(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 2024, in _do_execute
+    result = await executor(stmt, None)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 185, in bind_execute
+  File "asyncpg/protocol/prepared_stmt.pyx", line 204, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+asyncpg.exceptions.DataError: invalid input for query argument $2: <built-in method date of datetime.dateti... ('builtin_function_or_method' object has no attribute 'toordinal')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 574, in auto_schedule_confirmed
+    await callback.message.edit_text(
+    ...<2 lines>...
+    )
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/methods/base.py", line 84, in emit
+    return await bot(self)
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/bot.py", line 485, in __call__
+    return await self.session(self, method, timeout=request_timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/base.py", line 254, in __call__
+    return cast(TelegramType, await middleware(bot, method))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/aiohttp.py", line 185, in make_request
+    response = self.check_response(
+        bot=bot, method=method, status_code=resp.status, content=raw_result
+    )
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/base.py", line 120, in check_response
+    raise TelegramBadRequest(method=method, message=description)
+aiogram.exceptions.TelegramBadRequest: Telegram server says - Bad Request: can't parse entities: Unsupported start tag "built-in" at byte offset 101
+2026-02-02 22:19:51 | ERROR   | aiogram.event        | Cause exception while process update id=680168991 by bot id=7954654793
+TelegramBadRequest: Telegram server says - Bad Request: can't parse entities: Unsupported start tag "built-in" at byte offset 101
+Traceback (most recent call last):
+  File "asyncpg/protocol/prepared_stmt.pyx", line 175, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+  File "asyncpg/protocol/codecs/base.pyx", line 227, in asyncpg.protocol.protocol.Codec.encode
+  File "asyncpg/protocol/codecs/base.pyx", line 129, in asyncpg.protocol.protocol.Codec.encode_scalar
+  File "asyncpg/pgproto/./codecs/datetime.pyx", line 97, in asyncpg.pgproto.pgproto.date_encode
+AttributeError: 'builtin_function_or_method' object has no attribute 'toordinal'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 553, in auto_schedule_confirmed
+    schedule = await calc_auto_schedule(user, db)  # ДОБАВИЛ db
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 604, in calc_auto_schedule
+    schedule = await db.get_schedule(sect)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/db.py", line 391, in get_schedule
+    schedule = await conn.fetch("""
+               ^^^^^^^^^^^^^^^^^^^^
+        select * from schedule where sect=$1 and date >= $2 and lesson_type in ('Практические занятия', 'Лабораторная работа')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """, sect, datetime.now().date)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 690, in fetch
+    return await self._execute(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+                ^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/asyncpg/connection.py", line 2024, in _do_execute
+    result = await executor(stmt, None)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 185, in bind_execute
+  File "asyncpg/protocol/prepared_stmt.pyx", line 204, in asyncpg.protocol.protocol.PreparedStatementState._encode_bind_msg
+asyncpg.exceptions.DataError: invalid input for query argument $2: <built-in method date of datetime.dateti... ('builtin_function_or_method' object has no attribute 'toordinal')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+    response = await self.feed_update(bot, update, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 56, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/fsm/middleware.py", line 42, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 574, in auto_schedule_confirmed
+    await callback.message.edit_text(
+    ...<2 lines>...
+    )
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/methods/base.py", line 84, in emit
+    return await bot(self)
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/bot.py", line 485, in __call__
+    return await self.session(self, method, timeout=request_timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/base.py", line 254, in __call__
+    return cast(TelegramType, await middleware(bot, method))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/aiohttp.py", line 185, in make_request
+    response = self.check_response(
+        bot=bot, method=method, status_code=resp.status, content=raw_result
+    )
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/client/session/base.py", line 120, in check_response
+    raise TelegramBadRequest(method=method, message=description)
+aiogram.exceptions.TelegramBadRequest: Telegram server says - Bad Request: can't parse entities: Unsupported start tag "built-in" at byte offset 101
+2026-02-02 22:29:12 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:29:12 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:29:12 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:29:12 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:29:12 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:29:12 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:29:12 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:31:50 | ERROR   | BONCH_BOT            | Handler crashed
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 166, in tasks_progress
+    await message.answer(pages[0], reply_markup=keyboard)
+                         ^^^^^
+UnboundLocalError: cannot access local variable 'pages' where it is not associated with a value
+2026-02-02 22:31:51 | ERROR   | aiogram.event        | Cause exception while process update id=680169033 by bot id=7954654793
+UnboundLocalError: cannot access local variable 'pages' where it is not associated with a value
+Traceback (most recent call last):
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 309, in _process_update
+    response = await self.feed_update(bot, update, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 158, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/error.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/middlewares/user_context.py", line 56, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/fsm/middleware.py", line 42, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 174, in _propagate_event
+    response = await router.propagate_event(update_type=update_type, event=event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/core/middlewares.py", line 16, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/venv/lib64/python3.13/site-packages/aiogram/dispatcher/event/handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "/home/pustrace/programming/bonch_pt/services/tasks.py", line 166, in tasks_progress
+    await message.answer(pages[0], reply_markup=keyboard)
+                         ^^^^^
+UnboundLocalError: cannot access local variable 'pages' where it is not associated with a value
+2026-02-02 22:34:03 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:34:03 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:34:03 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:34:03 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:34:03 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:34:03 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:34:03 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:39:43 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:39:43 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:39:43 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:39:43 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:39:43 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:39:43 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:39:43 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:40:16 | INFO    | tasks                | Всего задач: 9, предметов с парами: 7
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 1 → 2026-02-11
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 2 → 2026-02-18
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 3 → 2026-02-25
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 4 → 2026-03-04
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 5 → 2026-03-11
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 6 → 2026-03-18
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 7 → 2026-03-25
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 8 → 2026-04-01
+2026-02-02 22:40:16 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 9 → 2026-04-08
+2026-02-02 22:40:16 | INFO    | tasks                | Готово к обновлению: 9/9 задач
+2026-02-02 22:51:41 | INFO    | tasks                | Всего задач: 18, предметов с парами: 7
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 1 → 2026-02-13
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 2 → 2026-02-20
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 3 → 2026-02-27
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 4 → 2026-03-06
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 5 → 2026-03-13
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 6 → 2026-03-20
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 7 → 2026-03-27
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 8 → 2026-04-03
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 9 → 2026-04-10
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 1 → 2026-02-11
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 2 → 2026-02-18
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 3 → 2026-02-25
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 4 → 2026-03-04
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 5 → 2026-03-11
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 6 → 2026-03-18
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 7 → 2026-03-25
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 8 → 2026-04-01
+2026-02-02 22:51:41 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 9 → 2026-04-08
+2026-02-02 22:51:41 | INFO    | tasks                | Готово к обновлению: 18/18 задач
+2026-02-02 22:57:21 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 22:57:21 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 22:57:21 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 22:57:21 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 22:57:21 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 22:57:21 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 22:57:21 | INFO    | BONCH_BOT            | 6️⃣ Запуск основного цикла
+2026-02-02 22:57:51 | INFO    | tasks                | Всего задач: 18, предметов с парами: 7
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 1 → 2026-02-13
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 2 → 2026-02-13
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 3 → 2026-02-13
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 4 → 2026-02-13
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 5 → 2026-02-20
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 6 → 2026-02-20
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 7 → 2026-02-20
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 8 → 2026-02-20
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Военная подготовка | лаба 9 → 2026-02-27
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 1 → 2026-02-11
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 2 → 2026-02-18
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 3 → 2026-02-25
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 4 → 2026-03-04
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 5 → 2026-03-11
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 6 → 2026-03-18
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 7 → 2026-03-25
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 8 → 2026-04-01
+2026-02-02 22:57:51 | INFO    | tasks                | 🆕👤 Криптографические протоколы | лаба 9 → 2026-04-08
+2026-02-02 22:57:51 | INFO    | tasks                | Готово к обновлению: 18/18 задач
+2026-02-02 23:31:39 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 23:31:39 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            |  4️⃣ Планировщик
+2026-02-02 23:31:39 | INFO    | apscheduler.scheduler | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-02 23:31:39 | INFO    | apscheduler.scheduler | Added job "init_scheduler.<locals>.send_reminders" to job store "default"
+2026-02-02 23:31:39 | INFO    | apscheduler.scheduler | Scheduler started
+2026-02-02 23:31:39 | INFO    | BONCH_BOT            | 5️⃣ Запуск основного цикла
+2026-02-02 23:33:15 | INFO    | root                 | Telegram notifications enabled for BONCH_BOT: ['1185330189', '943080081']
+2026-02-02 23:33:15 | INFO    | root                 | Logging initialized for module: BONCH_BOT
+2026-02-02 23:33:15 | INFO    | BONCH_BOT            | 🚀 Запуск бота...
+2026-02-02 23:33:15 | INFO    | BONCH_BOT            | 1️⃣ Telegram
+2026-02-02 23:33:15 | INFO    | BONCH_BOT            | 2️⃣ База данных
+2026-02-02 23:33:16 | INFO    | BONCH_BOT            | 3️⃣ Роутеры
+2026-02-02 23:33:16 | INFO    | BONCH_BOT            |  4️⃣ Планировщик
+2026-02-02 23:33:16 | INFO    | apscheduler.scheduler | Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-02 23:33:16 | INFO    | apscheduler.scheduler | Added job "init_scheduler.<locals>.send_reminders" to job store "default"
+2026-02-02 23:33:16 | INFO    | apscheduler.scheduler | Scheduler started
+2026-02-02 23:33:16 | INFO    | BONCH_BOT            | 5️⃣ Запуск основного цикла

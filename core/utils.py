@@ -134,3 +134,4 @@ def format_teacher_schedule(schedule: list, title: str = None) -> str:
         i = j
     
     return "\n".join(lines)
+

@@ -3,6 +3,7 @@ from aiogram import Router, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
+from aiogram.types import KeyboardButton
 import aiohttp
 from core.db import Database
 from core.states import RegistrationStates
@@ -18,7 +19,12 @@ async def cmd_start(message: types.Message, state: FSMContext, db: Database):
         schedule = await db.get_today_schedule(user[4])
         await message.answer(format_own_schedule(schedule, "Расписание на сегодня"), reply_markup=kb.main)
     else:
-        await message.answer("Привет! 👋 Похоже, вы здесь впервые.\n\n Пользуясь ботом вы соглашаетесь с политикой конфидинциальности. Прочитать можно здесь /docs\n\nВведите вашу группу (например: ИКБ-31):")
+        sects = await db.get_distinct_sects()
+        buttons = [
+        [KeyboardButton(text=f"{sect}")]
+        for sect in sects
+        ]
+        await message.answer("Привет! 👋 Похоже, вы здесь впервые.\n\n Пользуясь ботом вы соглашаетесь с политикой конфидинциальности. Прочитать можно здесь /docs\n\nВведите вашу группу или выберите из доступных (например: ИКБ-31):")
         await state.set_state(RegistrationStates.waiting_for_group)
 
 @start_router.message(RegistrationStates.waiting_for_group)
@@ -123,3 +129,5 @@ async def documents(message: types.Message):
         "Используя данного бота, пользователь соглашается с настоящей Политикой конфиденциальности.",
         parse_mode="Markdown"
     )
+
+

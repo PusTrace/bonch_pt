@@ -8,3 +8,11 @@ class QueueStates(StatesGroup):
     waiting_for_date = State()
     waiting_for_subject = State()
     waiting_for_brigade = State()
+
+class ReminderStates(StatesGroup):
+    waiting_for_teacher = State()
+    waiting_for_task = State()
+    waiting_for_subject = State()
+    waiting_for_sect = State()
+    waiting_for_brigade = State()
+    
