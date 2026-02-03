@@ -135,3 +135,10 @@ def format_teacher_schedule(schedule: list, title: str = None) -> str:
     
     return "\n".join(lines)
 
+from collections import defaultdict
+
+def group_by_prefix(rows):
+    data = defaultdict(list)
+    for prefix, number in rows:
+        data[prefix].append(number)
+    return data

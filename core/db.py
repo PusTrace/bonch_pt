@@ -29,91 +29,12 @@ class Database:
             await self.pool.close()
         
 
-    async def check_scheduler(self, current_date: date):
-        """
-        Получает расписание на текущий день.
-        Если на текущий день ничего нет — возвращает ближайшую дату после текущей.
-        Возвращает: (список записей, bool — True если есть на сегодня)
-        """
-        async with self.pool.acquire() as conn:
-            # Сначала проверяем расписание на текущий день
-            today_schedule = await conn.fetch("""
-                SELECT * FROM schedule 
-                WHERE date::date = $1 AND sect = 'IKB-31'
-                ORDER BY pair::int ASC
-            """, current_date)
-
-            if today_schedule:
-                return today_schedule, True
-
-            # Если на сегодня ничего нет — ищем ближайшую будущую дату
-            next_schedule = await conn.fetch("""
-                SELECT * FROM schedule 
-                WHERE date = (
-                    SELECT MIN(date) 
-                    FROM schedule 
-                    WHERE sect = 'IKB-31' AND date > $1
-                ) 
-                AND sect = 'IKB-31'
-                ORDER BY pair::int ASC
-            """, current_date)
-
-            return next_schedule, False
-
-
     async def add_user(self, chat_id: int, username: str, full_name: str, group: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
                 INSERT INTO users (chat_id, username, full_name, sect) VALUES ($1, $2, $3, $4)
             """, chat_id, username, full_name, group)
             
-            
-    async def load_reminders(self):
-        async with self.pool.acquire() as conn:
-            reminders = await conn.fetch("""
-                SELECT * FROM reminders
-            """)
-            return reminders
-
-
-    async def get_reminder(self, message: str = None, chat_id: int = None):
-        async with self.pool.acquire() as conn:
-            if message: 
-                reminder = await conn.fetch("""
-                    SELECT * FROM reminders WHERE message = $1
-                """, message)
-                return reminder
-            if chat_id:
-                reminder = await conn.fetch("""
-                    SELECT * FROM reminders WHERE chat_id = $1
-                """, chat_id)
-                return reminder
-
-
-    async def save_reminders(self, reminder):
-        async with self.pool.acquire() as conn:
-            await conn.execute(
-                """
-                INSERT INTO reminders (chat_id, message, deadline, intervals)
-                VALUES ($1, $2, $3, $4)
-                """,
-                (
-                    reminder[0],                   # chat_id
-                    reminder[1],                   # user_data как JSON
-                    reminder[2],                   # deadline (datetime)
-                    json.dumps(reminder[3])        # intervals как JSON
-                )
-            )
-            await conn.commit() 
-
-
-    async def get_deadlines(self):
-        async with self.pool.acquire() as conn:
-            deadlines = await conn.fetch("""
-                SELECT chat_id, message FROM reminders
-            """)
-            return deadlines
-
 
     async def get_queue(self, date: date):
         async with self.pool.acquire() as conn:
@@ -126,7 +47,6 @@ class Database:
                 WHERE date = $1
             """, date)
             return queue
-
 
 
     async def take_a_place(self, sect: str, subject: str, brigade_number: int):
@@ -169,20 +89,6 @@ class Database:
             else:
                 return False
 
-    
-    async def get_service_topic(self, service):
-        async with self.pool.acquire() as conn:
-            topic = await conn.fetch("""
-                SELECT * FROM service_topics WHERE service = $1
-            """, service)
-            return topic
-
-    async def set_service_topic(self, service, chat_id, thread_id):
-        async with self.pool.acquire() as conn:
-            await conn.execute("""
-                INSERT INTO service_topics (service, chat_id, thread_id)
-                VALUES ($1, $2, $3)
-            """, service, chat_id, thread_id)
 
     async def get_user_info(self, chat_id: int):
         async with self.pool.acquire() as conn:
@@ -203,14 +109,6 @@ class Database:
             await conn.execute("""
                 UPDATE users SET brigade = $1 WHERE chat_id = $2
             """, brigade, chat_id)
-            
-    async def get_subjects(self):
-        """Возвращает уникальные предметы с бригадами от 1 до 15"""
-        async with self.pool.acquire() as conn:
-            subjects = await conn.fetch("""
-                SELECT DISTINCT subject FROM schedule
-            """)
-            return subjects
 
 
     async def get_user_brigade(self, chat_id: int):
@@ -277,6 +175,7 @@ class Database:
                 WHERE chat_id = $1
                 AND is_brigade = false
                 AND (deadline >= CURRENT_DATE OR deadline IS NULL)
+                AND (progress <> 100 OR progress IS NULL)
                 
                 UNION
                 
@@ -289,6 +188,7 @@ class Database:
                 AND t.is_brigade = true
                 AND u1.brigade IS NOT NULL
                 AND (t.deadline >= CURRENT_DATE OR t.deadline IS NULL)
+                AND (t.progress <> 100 OR t.progress IS NULL)
                 
                 ORDER BY deadline, subject, task_type ASC NULLS LAST
             """, chat_id)
@@ -324,13 +224,15 @@ class Database:
         await self.pool.execute(query, progress, chat_id, task_type, subject)
 
             
-    async def update_user_group(self, chat_id: int, new_group: str):
+    async def update_user_group(self, chat_id: int, username: str, full_name: str, new_group: str):
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                UPDATE users
-                SET sect = $1
-                WHERE chat_id = $2
-            """, new_group, chat_id)
+                INSERT INTO users (chat_id, username, full_name, sect)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (chat_id)
+                DO UPDATE SET sect = EXCLUDED.sect
+            """, chat_id, username, full_name, new_group)
+
             
     async def update_user_brigade(self, chat_id: int, new_brigade: str):
         async with self.pool.acquire() as conn:
@@ -396,7 +298,11 @@ class Database:
     async def get_distinct_sects(self):
         async with self.pool.acquire() as conn:
             schedule = await conn.fetch("""
-                SELECT DISTINCT sect FROM schedule order by sect asc
+                SELECT DISTINCT
+                    regexp_replace(sect, '[^A-Za-zА-Яа-я]+.*$', '') AS prefix,
+                    regexp_replace(sect, '^[^0-9]*', '') AS number
+                FROM schedule 
+                order by prefix, number
             """)
             return schedule
         
@@ -456,7 +362,8 @@ class Database:
                 SELECT *
                 FROM tasks
                 WHERE deadline IS NOT NULL
-                AND deadline >= CURRENT_DATE
+                AND deadline >= CURRENT_DATE 
+                AND (progress <> 100 OR progress IS NULL)
             """)
 
             result = []
@@ -471,5 +378,39 @@ class Database:
                     recipients = group_users.get((author['sect'], author['brigade']), [])
                     for chat_id in recipients:
                         result.append((chat_id, task['subject'], task['deadline']))
+
+            return result
+
+
+    async def get_tasks_statistics(self, chat_id):
+        async with self.pool.acquire() as conn:
+            result = await conn.fetch("""
+                WITH user_info AS (
+                    SELECT chat_id, sect, brigade
+                    FROM users
+                    WHERE chat_id = $1
+                ),
+                relevant_tasks AS (
+                    SELECT t.*
+                    FROM tasks t
+                    JOIN user_info u ON 
+                        (t.is_brigade = false AND t.chat_id = u.chat_id)
+                        OR
+                        (t.is_brigade = true 
+                        AND t.chat_id IN (
+                            SELECT chat_id 
+                            FROM users 
+                            WHERE sect = u.sect AND brigade = u.brigade
+                        )
+                        )
+                )
+                SELECT 
+                    subject,
+                    COUNT(*) FILTER (WHERE progress = 100) AS done_count,
+                    COUNT(*) FILTER (WHERE progress <> 100 OR progress IS NULL) AS not_done_count
+                FROM relevant_tasks
+                GROUP BY subject
+                ORDER BY subject
+            """, chat_id)
 
             return result

@@ -47,7 +47,8 @@ user = ReplyKeyboardMarkup(
 
 tasks = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Добавить задачу"), KeyboardButton(text="Показать задачи")],
+        [KeyboardButton(text="Показать задачи")],
+        [KeyboardButton(text="Добавить задачу"), KeyboardButton(text="Статистика")],
         [KeyboardButton(text="Обновить дедлайн"), KeyboardButton(text="Обновить описание")],
         [KeyboardButton(text="Обновить прогресс"), KeyboardButton(text="Удалить задачу")],
         [KeyboardButton(text="Автопланирование")],

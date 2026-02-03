@@ -19,13 +19,6 @@ def create_subject_abbreviation(subject: str) -> str:
     return ''.join(word[0].upper() for word in words if word)
 
 
-def create_cancel_keyboard() -> ReplyKeyboardMarkup:
-    """Клавиатура с кнопкой отмены"""
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="❌ Отмена")]],
-        resize_keyboard=True
-    )
-
 
 def create_navigation_keyboard(current_page: int, total_pages: int) -> InlineKeyboardMarkup | None:
     """Создаёт клавиатуру навигации по страницам"""
@@ -152,17 +145,17 @@ async def navigate_page(callback: CallbackQuery, state: FSMContext, direction: i
 
 # === ПРОСМОТР ЗАДАЧ ===
 
-@router.message(F.text.in_({"Задачи", "Показать задачи"}))
+@router.message(F.text == "Показать задачи")
 async def tasks_progress(message: types.Message, db: Database, state: FSMContext):
     tasks = await db.get_user_tasks(message.chat.id)
-
-    await message.answer("Меню задач.", reply_markup=kb.tasks)
-
-    if tasks:
-        pages = split_tasks_into_pages(tasks)
-        await state.update_data(task_pages=pages, page_index=0)
-        
-        keyboard = create_navigation_keyboard(0, len(pages))
+    if not tasks:
+        await message.answer("у вас нет задач", reply_markup=kb.tasks)
+        return
+    
+    pages = split_tasks_into_pages(tasks)
+    await state.update_data(task_pages=pages, page_index=0)
+    
+    keyboard = create_navigation_keyboard(0, len(pages))
     await message.answer(pages[0], reply_markup=keyboard)
 
 
@@ -174,6 +167,23 @@ async def next_task_page(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "prev_task_page")
 async def prev_task_page(callback: CallbackQuery, state: FSMContext):
     await navigate_page(callback, state, -1)
+
+@router.message(F.text.in_({"Задачи", "Статистика"}) )
+async def tasks_progress(message: types.Message, db: Database, state: FSMContext):
+    tasks = await db.get_tasks_statistics(message.chat.id)
+    if not tasks:
+        await message.answer("У вас нет задач", reply_markup=kb.tasks)
+        return
+
+    lines = []
+    for row in tasks:
+        subject = row["subject"]
+        done = row["done_count"]
+        not_done = row["not_done_count"]
+        lines.append(f"📌 {subject}\n✅ Выполнено: {done}\n❌ Не выполнено: {not_done}")
+
+    text = "\n\n".join(lines)
+    await message.answer(text, reply_markup=kb.tasks)
 
 
 # === ДОБАВЛЕНИЕ ЗАДАЧИ ===
@@ -226,7 +236,7 @@ async def task_mode_selected(message: types.Message, state: FSMContext):
     await message.answer(
         f"Предмет: {data['subject']}\nТип: {mode}\n\n"
         "Введите название задания (например: ЛР №1, Курсовая):",
-        reply_markup=create_cancel_keyboard()
+        reply_markup=kb.cancel_keyboard()
     )
 
 
@@ -299,7 +309,7 @@ async def select_task_for_update(
     await state.set_state(next_state)
     await message.answer(
         f"Задача: [{subject_abbr}] {task_type}\n\n{next_prompt}",
-        reply_markup=create_cancel_keyboard()
+        reply_markup=kb.cancel_keyboard()
     )
 
 
@@ -475,14 +485,6 @@ async def delete_task_confirm(message: types.Message, db: Database, state: FSMCo
         f"✅ Задача удалена:\n\n[{subject_abbr}] {task_type}",
         reply_markup=kb.tasks
     )
-
-
-# === ОТМЕНА ===
-
-@router.message(F.text == "❌ Отмена", StateFilter("*"))
-async def cancel_action(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.tasks)
 
 
 # === МАССОВОЕ СОЗДАНИЕ ЗАДАЧ ===

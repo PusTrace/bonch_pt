@@ -3,12 +3,13 @@ from aiogram import Router, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
-from aiogram.types import KeyboardButton
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 import aiohttp
 from core.db import Database
 from core.states import RegistrationStates
 import core.keyboards as kb
 from core.utils import format_own_schedule
+from services.user import change_group
 
 start_router = Router()
 
@@ -19,30 +20,7 @@ async def cmd_start(message: types.Message, state: FSMContext, db: Database):
         schedule = await db.get_today_schedule(user[4])
         await message.answer(format_own_schedule(schedule, "Расписание на сегодня"), reply_markup=kb.main)
     else:
-        sects = await db.get_distinct_sects()
-        buttons = [
-        [KeyboardButton(text=f"{sect}")]
-        for sect in sects
-        ]
-        await message.answer("Привет! 👋 Похоже, вы здесь впервые.\n\n Пользуясь ботом вы соглашаетесь с политикой конфидинциальности. Прочитать можно здесь /docs\n\nВведите вашу группу или выберите из доступных (например: ИКБ-31):")
-        await state.set_state(RegistrationStates.waiting_for_group)
-
-@start_router.message(RegistrationStates.waiting_for_group)
-async def process_group(message: types.Message, state: FSMContext, db: Database):
-    group = message.text.strip().upper()
-
-    await db.add_user(
-        message.chat.id,
-        message.from_user.username,
-        message.from_user.full_name,
-        group
-    )
-    
-    await state.clear()
-    await message.answer(
-        f"Отлично! Группа '{group}' сохранена ✅",
-        reply_markup=kb.main
-    )
+        await change_group(message, state, db)
 
 @start_router.message(F.text == "Ещё")
 async def other(message: types.Message):
@@ -62,11 +40,6 @@ async def report_issue_start(message: types.Message, state: FSMContext):
     cancel_kb = kb.cancel_keyboard()
     await message.answer("Опишите проблему:", reply_markup=cancel_kb)
     await state.set_state(RegistrationStates.waiting_for_report)
-
-@start_router.message(F.text == "❌ Отмена", StateFilter(RegistrationStates.waiting_for_report))
-async def cancel_report(message: types.Message, state: FSMContext):
-    await state.clear()
-    await message.answer("Отменено.", reply_markup=kb.main)
 
 @start_router.message(RegistrationStates.waiting_for_report)
 async def report_issue_save(message: types.Message, state: FSMContext, db: Database):
