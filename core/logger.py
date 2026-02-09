@@ -22,6 +22,12 @@ class TelegramHandler(logging.Handler):
         try:
             # форматируем сообщение
             msg = self.format(record)
+            if (
+                record.name == "aiogram.dispatcher"
+                and "Failed to fetch updates" in msg
+                and "ServerDisconnectedError" in msg
+            ):
+                return  # просто игнорируем
 
             # добавляем traceback если есть
             if record.exc_info:
