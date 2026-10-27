@@ -1,16 +1,14 @@
-from aiogram import Router, types, F
-from aiogram.filters import Command
-from aiogram.types import CallbackQuery
-from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime, timedelta
 
-
-from core.db import Database
-from core.states import QueueStates
+import core.keyboards as core_kb
 import core.keyboards as main_kb
 import services.queue.keyboards as kb
-import core.keyboards as core_kb
+from aiogram import F, Router, types
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from core.db import Database
+from core.states import QueueStates
 
 router = Router(name="queue")
 ABBR = {
@@ -21,34 +19,34 @@ ABBR = {
     "МИСКЗИ": "Методы и средства криптографической защиты информации",
     "ОМВКС": "Основы маршрутизации в компьютерных сетях",
     "ПАСЗИ": "Программно-аппаратные средства защиты информации",
-    "ОИПОИБ": "Организационное и правовое обеспечение информационной безопасности"
+    "ОИПОИБ": "Организационное и правовое обеспечение информационной безопасности",
 }
+
 
 @router.callback_query(F.data == "queue_main")
 async def queue_main(callback: types.CallbackQuery, db: Database):
-    
+
     thread_id = callback.message.message_thread_id
     date = datetime.now().date()
-    
+
     queue = await db.get_queue(date)
     text_lines = ["📋 Очередь на сегодня:\n"]
     for record in queue:
-        text_lines.append(f"{record['id']:>2} | Бригада {record['brigade_number']:>2} | {record['subject']:<35}")
+        text_lines.append(
+            f"{record['id']:>2} | Бригада {record['brigade_number']:>2} | {record['subject']:<35}"
+        )
 
-    await callback.message.edit_text(
-        text="\n".join(text_lines),
-        reply_markup=kb.main
-    )
+    await callback.message.edit_text(text="\n".join(text_lines), reply_markup=kb.main)
 
     await callback.answer()
 
-    
 
 # 1️⃣ Пользователь нажимает кнопку "Выбрать дату"
 @router.callback_query(F.data == "queue_custom_date")
 async def choose_date(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Введите дату в формате ДД-ММ:")
     await state.set_state(QueueStates.waiting_for_date)
+
 
 # 2️⃣ Пользователь присылает текстовое сообщение с датой
 @router.message(QueueStates.waiting_for_date)
@@ -67,16 +65,19 @@ async def process_custom_date(message: types.Message, state: FSMContext, db: Dat
     else:
         text_lines = ["📋 Очередь:\n"]
         for record in queue:
-            text_lines.append(f"{record['id']:>2} | Бригада {record['brigade_number']:>2} | {record['subject']:<35}")
+            text_lines.append(
+                f"{record['id']:>2} | Бригада {record['brigade_number']:>2} | {record['subject']:<35}"
+            )
         await message.answer("\n".join(text_lines), reply_markup=kb.main)
 
     await state.clear()  # сбрасываем состояние
 
 
-
 # 1️⃣ Выбор предмета
 @router.callback_query(F.data == "take_queue")
-async def choose_subject(callback: types.CallbackQuery, state: FSMContext, db: Database):
+async def choose_subject(
+    callback: types.CallbackQuery, state: FSMContext, db: Database
+):
     user_id = callback.from_user.id
 
     # проверяем, есть ли у пользователя сохранённая бригада
@@ -85,7 +86,10 @@ async def choose_subject(callback: types.CallbackQuery, state: FSMContext, db: D
     await state.update_data(user_brigade=user_brigade)
 
     keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text=name, callback_data=f"subject_{abbr}")] for abbr, name in ABBR.items()]
+        inline_keyboard=[
+            [InlineKeyboardButton(text=name, callback_data=f"subject_{abbr}")]
+            for abbr, name in ABBR.items()
+        ]
     )
     await callback.message.edit_text("Выберите предмет:", reply_markup=keyboard)
     await state.set_state(QueueStates.waiting_for_subject)
@@ -93,8 +97,10 @@ async def choose_subject(callback: types.CallbackQuery, state: FSMContext, db: D
 
 # 2️⃣ Выбор бригады
 @router.callback_query(F.data.startswith("subject_"))
-async def choose_brigade(callback: types.CallbackQuery, state: FSMContext, db: Database):
-    subject_abbr = callback.data[len("subject_"):]
+async def choose_brigade(
+    callback: types.CallbackQuery, state: FSMContext, db: Database
+):
+    subject_abbr = callback.data[len("subject_") :]
     await state.update_data(subject=subject_abbr)
 
     data = await state.get_data()
@@ -112,16 +118,21 @@ async def choose_brigade(callback: types.CallbackQuery, state: FSMContext, db: D
 
     # иначе — показываем выбор бригады
     keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text=f"Бригада {b}", callback_data=f"brigade_{b}")] for b in range(1, 16)]
+        inline_keyboard=[
+            [InlineKeyboardButton(text=f"Бригада {b}", callback_data=f"brigade_{b}")]
+            for b in range(1, 16)
+        ]
     )
-    await callback.message.edit_text(f"Выберите бригаду для {ABBR[subject_abbr]}:", reply_markup=keyboard)
+    await callback.message.edit_text(
+        f"Выберите бригаду для {ABBR[subject_abbr]}:", reply_markup=keyboard
+    )
     await state.set_state(QueueStates.waiting_for_brigade)
 
 
 # 3️⃣ Занятие места
 @router.callback_query(F.data.startswith("brigade_"))
 async def take_place(callback: types.CallbackQuery, state: FSMContext, db: Database):
-    brigade = int(callback.data[len("brigade_"):])
+    brigade = int(callback.data[len("brigade_") :])
     data = await state.get_data()
     subject = data.get("subject")
     sect = "ИКБ-31"  # можно брать динамически, если нужно
@@ -133,15 +144,19 @@ async def take_place(callback: types.CallbackQuery, state: FSMContext, db: Datab
         await callback.answer("⚠️ Не удалось занять место.", show_alert=True)
 
 
-
 @router.callback_query(F.data == "how_to_queue")
 async def how_to_queue(callback: types.CallbackQuery):
-    await callback.message.edit_text(text="Чтобы занять очередь, введите команду: /take_a_place <Абревиатура предмета> <номер бригады>(только 1 раз) Пример: /take_a_place ОМВКС 31\n Обратите внимание, что вы можете занять очередь только на ближайшие 3 дня.\n", reply_markup=kb.main)
+    await callback.message.edit_text(
+        text="Чтобы занять очередь, введите команду: /take_a_place <Абревиатура предмета> <номер бригады>(только 1 раз) Пример: /take_a_place ОМВКС 31\n Обратите внимание, что вы можете занять очередь только на ближайшие 3 дня.\n",
+        reply_markup=kb.main,
+    )
     await callback.answer()
+
 
 @router.callback_query(F.data == "abbreviations")
 async def abbreviations(callback: types.CallbackQuery):
-    await callback.message.edit_text(text="Абревиатуры предметов:\n\n"
+    await callback.message.edit_text(
+        text="Абревиатуры предметов:\n\n"
         "1. ASTRA - Безопасность Astra-Linux\n"
         "2. ББЛС - Безопасность беспроводных локальных сетей\n"
         "3. ЗОССУ - Защита операционных систем сетевых устройств\n"
@@ -149,8 +164,10 @@ async def abbreviations(callback: types.CallbackQuery):
         "5. МИСКЗИ - Методы и средства криптографической защиты информации\n"
         "6. ОМВКС - Основы маршрутизации в компьютерных сетях\n"
         "7. ПАСЗИ - Программно-аппаратные средства защиты информации\n"
-        "8. ОИПОИБ - Организационное и правовое обеспечение информационной безопасности\n", reply_markup=kb.main
+        "8. ОИПОИБ - Организационное и правовое обеспечение информационной безопасности\n",
+        reply_markup=kb.main,
     )
+
 
 @router.message(Command("take_a_place"))
 async def take_a_place(message: types.Message, db: Database):
@@ -167,11 +184,13 @@ async def take_a_place(message: types.Message, db: Database):
 
     # Если пользователь написал только /take_a_place
     if len(parts) < 2:
-        await message.answer("⚠️ Неверный формат. Используйте:\n"
-                             "/take_a_place <Абревиатура предмета> [номер бригады]\n\n"
-                             "Примеры:\n"
-                             "/take_a_place ASTRA 2\n"
-                             "/take_a_place ASTRA")
+        await message.answer(
+            "⚠️ Неверный формат. Используйте:\n"
+            "/take_a_place <Абревиатура предмета> [номер бригады]\n\n"
+            "Примеры:\n"
+            "/take_a_place ASTRA 2\n"
+            "/take_a_place ASTRA"
+        )
         return
 
     # subject — всегда берём из аргументов
@@ -186,7 +205,9 @@ async def take_a_place(message: types.Message, db: Database):
             brigade_to_use = int(parts[2].strip())
             # Сохраняем бригаду в профиле (удобство) — можно только сохранять при успехе.
         except ValueError:
-            await message.answer("⚠️ Номер бригады должен быть числом. Например: /take_a_place ASTRA 2")
+            await message.answer(
+                "⚠️ Номер бригады должен быть числом. Например: /take_a_place ASTRA 2"
+            )
             return
     else:
         # Если не указали, пробуем взять из профиля
@@ -195,9 +216,11 @@ async def take_a_place(message: types.Message, db: Database):
 
     # Если бригада всё ещё не определена — просим пользователя указать её отдельно
     if brigade_to_use is None:
-        await message.answer("У вас не сохранена бригада. Укажите бригаду в команде:\n"
-                             "/take_a_place <Абривиатура предмета> <номер бригады>\n\n"
-                             "Пример: /take_a_place ASTRA 2")
+        await message.answer(
+            "У вас не сохранена бригада. Укажите бригаду в команде:\n"
+            "/take_a_place <Абривиатура предмета> <номер бригады>\n\n"
+            "Пример: /take_a_place ASTRA 2"
+        )
         return
 
     # Теперь вызываем db.take_a_place с секцией, предметом и бригадой
@@ -215,9 +238,14 @@ async def take_a_place(message: types.Message, db: Database):
         await db.save_brigade(brigade_to_use, message.from_user.id)
         await message.answer("✅ Место успешно занято!", reply_markup=kb.main)
     else:
-        await message.answer("⚠️ Не удалось занять место. Возможно, вы уже записаны или нет пары в ближайшие дни.", reply_markup=kb.main)
+        await message.answer(
+            "⚠️ Не удалось занять место. Возможно, вы уже записаны или нет пары в ближайшие дни.",
+            reply_markup=kb.main,
+        )
 
 
 @router.callback_query(F.data == "main")
 async def main_menu(callback: types.CallbackQuery):
-    await callback.message.edit_text("Вы вернулись в главное меню.", reply_markup=main_kb.main)
+    await callback.message.edit_text(
+        "Вы вернулись в главное меню.", reply_markup=main_kb.main
+    )

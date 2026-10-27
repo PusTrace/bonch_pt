@@ -1,23 +1,27 @@
-from aiogram import Router, types, F
-from aiogram.fsm.context import FSMContext
-from aiogram.filters import StateFilter
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, CallbackQuery
-from core.db import Database
 import core.keyboards as kb
+from aiogram import F, Router, types
+from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, KeyboardButton, ReplyKeyboardMarkup
+from core.db import Database
 from core.utils import group_by_prefix
 
 router = Router(name="user")
+
 
 @router.message(F.text == "Мои данные")
 async def user_progress(message: types.Message, db: Database):
     user = await db.get_user_info(message.chat.id)
 
     if not user:
-        await message.answer("У вас нет информации о пользователе.", reply_markup=kb.user)
+        await message.answer(
+            "У вас нет информации о пользователе.", reply_markup=kb.user
+        )
         return
 
     result = f"Имя: {user['username']}\nГруппа: {user['sect']}\nБригада: {user['brigade']}\n\n"
     await message.answer(result, reply_markup=kb.user)
+
 
 @router.message(F.text == "Сменить группу")
 async def change_group(message: types.Message, state: FSMContext, db: Database):
@@ -27,13 +31,14 @@ async def change_group(message: types.Message, state: FSMContext, db: Database):
     await state.update_data(groups=groups)
 
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=p)] for p in groups.keys()] +
-                 [[KeyboardButton(text="❌ Отмена")]],
-        resize_keyboard=True
+        keyboard=[[KeyboardButton(text=p)] for p in groups.keys()]
+        + [[KeyboardButton(text="❌ Отмена")]],
+        resize_keyboard=True,
     )
 
     await message.answer("Выбери буквенную часть группы:", reply_markup=keyboard)
     await state.set_state("waiting_for_prefix")
+
 
 @router.message(StateFilter("waiting_for_prefix"))
 async def choose_number(message: types.Message, state: FSMContext):
@@ -50,9 +55,9 @@ async def choose_number(message: types.Message, state: FSMContext):
     await state.update_data(prefix=prefix)
 
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=n)] for n in numbers] +
-                 [[KeyboardButton(text="❌ Отмена")]],
-        resize_keyboard=True
+        keyboard=[[KeyboardButton(text=n)] for n in numbers]
+        + [[KeyboardButton(text="❌ Отмена")]],
+        resize_keyboard=True,
     )
 
     await message.answer(f"Теперь выбери номер для {prefix}:", reply_markup=keyboard)
@@ -76,30 +81,36 @@ async def process_new_group(message: types.Message, state: FSMContext, db: Datab
     await db.update_user_group(
         message.chat.id,
         message.from_user.username,
-        message.from_user.full_name, 
-        full_group)
+        message.from_user.full_name,
+        full_group,
+    )
     await message.answer(
-        f"Ваша группа успешно изменена на: {full_group}",
-        reply_markup=kb.main
+        f"Ваша группа успешно изменена на: {full_group}", reply_markup=kb.main
     )
     await state.clear()
 
-    
+
 @router.message(F.text == "Сменить бригаду")
 async def change_brigade(message: types.Message, state: FSMContext):
     await message.answer("Введите новую бригаду:", reply_markup=kb.cancel_keyboard())
     await state.set_state("waiting_for_brigade")
-    
+
+
 @router.message(StateFilter("waiting_for_brigade"))
 async def process_new_brigade(message: types.Message, state: FSMContext, db: Database):
     new_brigade = int(message.text)
     await db.update_user_brigade(message.chat.id, new_brigade)
-    await message.answer(f"Ваша бригада успешно изменена на: {new_brigade}", reply_markup=kb.user)
+    await message.answer(
+        f"Ваша бригада успешно изменена на: {new_brigade}", reply_markup=kb.user
+    )
     await state.clear()
-    
+
+
 @router.message(F.text == "Удалить мои данные")
 async def remove_user_data(message: types.Message, db: Database):
     chat_id = message.chat.id
     await db.remove_user_data(chat_id)
-    await message.answer(f"Ваши данные были удалены, нажмите /start чтобы снова пользоваться ботом", reply_markup=types.ReplyKeyboardRemove())
-    
+    await message.answer(
+        f"Ваши данные были удалены, нажмите /start чтобы снова пользоваться ботом",
+        reply_markup=types.ReplyKeyboardRemove(),
+    )

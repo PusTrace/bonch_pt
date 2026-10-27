@@ -1,15 +1,13 @@
-# Используем официальный образ Python
-FROM python:3.13-slim
 
-# Задаём рабочую директорию
+FROM python:3.14-slim
+
 WORKDIR /app
 
-# Копируем зависимости и устанавливаем их
-COPY requirements.txt .
+COPY services/bonch/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь проект
-COPY . .
+COPY services/bonch .
 
-# Указываем команду запуска
-CMD ["python", "bonch.py"]
+CMD ["python", "autocheck.py"]
+CMD ["python", "schedule_parser.py"]
+CMD ["python", "schedule.py"]
