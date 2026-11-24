@@ -5,6 +5,8 @@ services:
           dockerfile: autocollector/Dockerfile
     container_name: autocollector
     restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
     env_file: .env
     depends_on:
       redis:
@@ -27,7 +29,11 @@ services:
           dockerfile: schedule/Dockerfile
     container_name: schedule
     restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       redis:
         condition: service_healthy
