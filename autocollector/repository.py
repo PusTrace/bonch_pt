@@ -14,17 +14,31 @@ class RedisDB:
     async def insert_schedule(self, data: list[tuple]):
         async with self.redis.pipeline(transaction=True) as pipe:
             for item in data:
-                (
-                    date_str,
-                    pair,
-                    subject,
-                    auditorium,
-                    teacher,
-                    lesson_type,
-                    sect,
-                ) = item
+                if len(item) == 9:
+                    (
+                        date_str,
+                        pair,
+                        subject,
+                        auditorium,
+                        teacher,
+                        lesson_type,
+                        sect,
+                        time_start,
+                        time_end,
+                    ) = item
+                else:
+                    (
+                        date_str,
+                        pair,
+                        subject,
+                        auditorium,
+                        teacher,
+                        lesson_type,
+                        sect,
+                    ) = item
+                    time_start, time_end = None, None
 
-                key = f"schedule:{sect}:{date_str}:{pair}"
+                key = f"schedule:{sect}:{date_str}:{pair}:{time_start or ''}"
 
                 value = {
                     "date": date_str,
@@ -34,6 +48,8 @@ class RedisDB:
                     "teacher": teacher,
                     "lesson_type": lesson_type,
                     "sect": sect,
+                    "time_start": time_start,
+                    "time_end": time_end,
                 }
 
                 pipe.set(key, json.dumps(value, ensure_ascii=False))
@@ -86,20 +102,34 @@ class RedisDB:
             pipe.zrem(f"schedule:dates:{sect}", *week_dates)
 
             for item in data:
-                (
-                    date_str,
-                    pair,
-                    subject,
-                    auditorium,
-                    teacher,
-                    lesson_type,
-                    sect,
-                ) = item
+                if len(item) == 9:
+                    (
+                        date_str,
+                        pair,
+                        subject,
+                        auditorium,
+                        teacher,
+                        lesson_type,
+                        sect,
+                        time_start,
+                        time_end,
+                    ) = item
+                else:
+                    (
+                        date_str,
+                        pair,
+                        subject,
+                        auditorium,
+                        teacher,
+                        lesson_type,
+                        sect,
+                    ) = item
+                    time_start, time_end = None, None
 
                 if pair is None:
                     continue
 
-                key = f"schedule:{sect}:{date_str}:{pair}"
+                key = f"schedule:{sect}:{date_str}:{pair}:{time_start or ''}"
 
                 value = {
                     "date": date_str,
@@ -109,6 +139,8 @@ class RedisDB:
                     "teacher": teacher,
                     "lesson_type": lesson_type,
                     "sect": sect,
+                    "time_start": time_start,
+                    "time_end": time_end,
                 }
 
                 pipe.set(

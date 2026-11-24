@@ -1,7 +1,9 @@
 import asyncio
 import os
 import random
+import re
 from datetime import date, datetime, timedelta
+from inspect import trace
 
 import httpx
 from bs4 import BeautifulSoup
@@ -15,8 +17,6 @@ class Bonch:
         "https://www.sut.ru/studentu/raspisanie/"
         "raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya"
     )
-
-    PAIRS = ["1", "2", "3", "4", "5", "6", "7"]
 
     def __init__(self, db: RedisDB):
         self.db = db
@@ -94,51 +94,75 @@ class Bonch:
         cur_date: date,
         sect: str,
     ) -> list[tuple]:
-
         soup = BeautifulSoup(response.text, "html.parser")
-        data = []
+        data: list[tuple] = []
 
         week_start = cur_date - timedelta(days=cur_date.weekday())
 
-        for day_offset in range(7):
-            real_date = week_start + timedelta(days=day_offset)
-            day_date = real_date.isoformat()
+        vt236 = soup.find(class_="vt236")
+        if not vt236:
+            return data
+        vt244b = vt236.find(class_="vt244b")
+        if not vt244b:
+            return data
 
-            day_class = f"rasp-day{day_offset + 1}"
-            schedule_blocks = soup.find_all("div", {"class": day_class})
+        slots = vt244b.find_all("div", class_="vt244", recursive=False)
+        for slot in slots:
+            all_vt239 = slot.find_all("div", class_="vt239")
+            header = None
+            day_cells: dict[int, object] = {}
+            for el in all_vt239:
+                cls_list = el.get("class") or []
+                if "rasp-day" in cls_list:
+                    for c in cls_list:
+                        if c.startswith("rasp-day") and c[8:].isdigit():
+                            day_cells[int(c[8:])] = el
+                else:
+                    if header is None:
+                        header = el
+            if header is None:
+                continue
+            header_text = " ".join(header.get_text(" ", strip=True).split())
+            m = re.match(
+                r"^(?P<pnum>\d+|ФЗ)\s+(?P<t1>\d{1,2}:\d{2})\s+(?P<t2>\d{1,2}:\d{2})",
+                header_text,
+            )
+            if m:
+                pnum = m.group("pnum")
+                t1, t2 = m.group("t1"), m.group("t2")
+            else:
+                parts = header_text.split()
+                pnum = parts[0] if parts else None
+                t1, t2 = None, None
 
-            pair_index = 0
-
-            for block in schedule_blocks:
-                subject = block.find("div", {"class": "vt240"})
-                teacher = block.find("span", {"class": "teacher"})
-                auditorium = block.find("div", {"class": "vt242"})
-                lesson_type = block.find("div", {"class": "vt243"})
-
-                if all(
-                    item is None
-                    for item in (
-                        subject,
-                        teacher,
-                        auditorium,
-                        lesson_type,
-                    )
-                ):
-                    pair_index += 1
+            for day_offset in range(7):
+                real_date = week_start + timedelta(days=day_offset)
+                day_date = real_date.isoformat()
+                cell = day_cells.get(day_offset + 1)
+                if not cell:
                     continue
+                subject = cell.find("div", class_="vt240")
+                teacher = cell.find("span", class_="teacher")
+                auditorium = cell.find("div", class_="vt242")
+                lesson_type = cell.find("div", class_="vt243")
+
+                if all(x is None for x in (subject, teacher, auditorium, lesson_type)):
+                    txt = " ".join(cell.get_text(" ", strip=True).split())
+                    if not txt:
+                        continue
 
                 entry = (
                     day_date,
-                    self.PAIRS[pair_index] if pair_index < len(self.PAIRS) else None,
+                    pnum,
                     subject.get_text(strip=True) if subject else None,
                     auditorium.get_text(strip=True) if auditorium else None,
                     teacher.get_text(strip=True) if teacher else None,
                     lesson_type.get_text(strip=True) if lesson_type else None,
                     sect,
+                    t1,
+                    t2,
                 )
-
                 data.append(entry)
-                pair_index += 1
 
         return data
 
@@ -146,6 +170,10 @@ class Bonch:
         """Однократная первичная загрузка расписания при запуске программы."""
 
         print("\n========== INITIAL SCHEDULE UPDATE ==========\n")
+
+        await self.update_all_groups(
+            qty_weeks=8, request_delay=(1, 3), group_delay=(3, 9), only_my_group=True
+        )
 
         await self.update_all_groups(
             qty_weeks=8, request_delay=(1, 3), group_delay=(3, 9)
