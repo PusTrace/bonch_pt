@@ -1,6 +1,52 @@
 services:
-  bonch:
-    build: .
-    container_name: bonch
+  autocollector:
+    build: 
+          context: .
+          dockerfile: autocollector/Dockerfile
+    container_name: autocollector
     restart: always
     env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+#  autocheck:
+#    build: 
+#          context: .
+#          dockerfile: autocheck/Dockerfile
+#    container_name: autocheck
+#    restart: always
+#    env_file: .env
+#    depends_on:
+#      redis:
+#        condition: service_healthy
+
+  schedule:
+    build: 
+          context: .
+          dockerfile: schedule/Dockerfile
+    container_name: schedule
+    restart: always
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:6379:6379"
+
+volumes:
+  redis_data:
+

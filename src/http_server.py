@@ -1,10 +1,11 @@
 import uvicorn
 from fastapi import FastAPI
+
 from repository import PostgreSQLDB
 
 
 class HttpServer:
-    def __init__(self, db: PostgreSQLDB, host: str = "0.0.0.0", port: int = 8001):
+    def __init__(self, db: PostgreSQLDB, host: str = "0.0.0.0", port: int = 8005):
         self.host = host
         self.port = port
         self.db = db
@@ -21,13 +22,7 @@ class HttpServer:
 
         @self.app.get("/exercises")
         async def get_exercises(user_id: int, limit: int | None = None):
-            workout_sets = await self.db.get_exercises(user_id, limit)
-            return workout_sets
-
-        @self.app.get("/body-measurements")
-        async def get_body_measurements(user_id: int, limit: int | None = None):
-            res = await self.db.get_body_measurements(user_id, limit)
-            return res
+            return {"status": "live"}
 
         self.config = uvicorn.Config(
             self.app,
