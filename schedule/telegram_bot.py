@@ -281,7 +281,7 @@ async def main():
     if not token:
         raise RuntimeError("Не задан BOT_TOKEN")
     redis = Redis.from_url(redis_url, decode_responses=True)
-    proxy_url = (os.getenv("TELEGRAM_PROXY") or "").strip()
+    proxy_url = (os.getenv("SOCKS_PROXY") or "").strip()
     if proxy_url:
         session = AiohttpSession(proxy=proxy_url)
     else:
