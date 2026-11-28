@@ -1,6 +1,10 @@
 import asyncio
+import logging
 import os
+import random
 from datetime import date, datetime, timedelta
+from logging.handlers import RotatingFileHandler
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 from playwright.async_api import (
@@ -11,6 +15,45 @@ from playwright.async_api import (
 )
 
 from repository import RedisDB
+
+logger = logging.getLogger("autocheck")
+
+
+def setup_logging() -> None:
+    """Настраивает вывод логов в консоль и вращающийся файл."""
+
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_file = os.getenv("LOG_FILE", "autocheck.log")
+
+    handlers: list[logging.Handler] = [logging.StreamHandler()]
+
+    if log_file:
+        handlers.append(
+            RotatingFileHandler(
+                log_file,
+                maxBytes=5 * 1024 * 1024,
+                backupCount=3,
+                encoding="utf-8",
+            )
+        )
+
+    logging.basicConfig(
+        level=getattr(logging, log_level, logging.INFO),
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        handlers=handlers,
+        force=True,
+    )
+
+
+def _redis_target(url: str) -> str:
+    """Возвращает REDIS_URL без учётных данных для логов."""
+
+    parts = urlsplit(url)
+    host = parts.hostname or ""
+    port = f":{parts.port}" if parts.port else ""
+    db = parts.path.lstrip("/") or "0"
+    return f"{parts.scheme}://{host}{port}/{db}"
+
 
 BASE_URL = "https://lk.sut.ru/cabinet/?printin=yes"
 
@@ -28,9 +71,10 @@ TIME_SLOTS = {
 
 
 async def login(page, email, password):
-    print("Начинаю логин...")
+    logger.info("Начинаю логин...")
 
     if not email or not password:
+        logger.error("Не заданы LOGIN и PASSWORD в .env")
         raise ValueError("LOGIN и PASSWORD должны быть заданы в .env")
 
     await page.locator("#users").fill(email)
@@ -42,14 +86,14 @@ async def login(page, email, password):
         timeout=15000,
     )
 
-    print("Логин выполнен.")
+    logger.info("Логин выполнен.")
 
 
 # ====== NAVIGATION ======
 
 
 async def go_to_url(page):
-    print("Переход на страницу занятий...")
+    logger.info("Переход на страницу занятий...")
 
     open_learn = page.locator("#heading1 > h5 > div")
     await open_learn.click()
@@ -57,13 +101,14 @@ async def go_to_url(page):
     go_to_scheduler = page.locator("#menu_li_6118")
     await go_to_scheduler.click()
 
-    print("На странице расписания.")
+    logger.info("На странице расписания: %s", page.url)
 
 
 async def open_schedule(page, email, password):
     """Открывает расписание, авторизуясь при необходимости."""
 
     await page.goto(BASE_URL, wait_until="domcontentloaded")
+    logger.debug("Открыта страница: %s", page.url)
 
     login_form = page.locator("#users")
 
@@ -79,21 +124,35 @@ async def open_schedule(page, email, password):
 async def check_in_bonch(end_time, page, email, password):
     """
     Ищет кнопку 'Начать занятие' до окончания пары.
-    Каждую минуту заново открывает раздел расписания.
+    Каждые 2-4 минуты перезагружает текущую страницу расписания.
     """
 
-    print("Проверяю кнопки 'Начать занятие'...")
+    logger.info("Проверяю кнопки 'Начать занятие'...")
 
-    start_buttons = page.locator("xpath=//a[contains(text(), 'Начать занятие')]")
+    attempt = 0
 
     while datetime.now() < end_time:
+        attempt += 1
+        logger.info(
+            "Попытка %d поиска кнопок. URL: %s",
+            attempt,
+            page.url,
+        )
+
+        # Локатор создаём заново после каждой перезагрузки: так он всегда
+        # соответствует текущему DOM, как это было в старой версии на Selenium.
+        start_buttons = page.locator("a", has_text="Начать занятие")
+
         try:
+            # Раньше использовался presence_of_all_elements_located: важно
+            # дождаться появления кнопок, а не только видимости первой из них.
             await start_buttons.first.wait_for(
-                state="visible",
+                state="attached",
                 timeout=10000,
             )
 
             buttons_count = await start_buttons.count()
+            logger.info("Найдено кнопок 'Начать занятие': %d", buttons_count)
 
             for index in range(buttons_count):
                 button = start_buttons.nth(index)
@@ -102,44 +161,57 @@ async def check_in_bonch(end_time, page, email, password):
                     await button.scroll_into_view_if_needed()
                     await button.click(timeout=10000)
 
-                    print(f"Нажата кнопка {index + 1}/{buttons_count}")
+                    logger.info("Нажата кнопка %d/%d", index + 1, buttons_count)
 
-                except Exception as error:
-                    print(f"Ошибка нажатия кнопки: {error}")
+                except Exception:
+                    logger.exception(
+                        "Не удалось нажать кнопку %d/%d",
+                        index + 1,
+                        buttons_count,
+                    )
 
-            print("Кнопки занятия нажаты.")
+            logger.info("Кнопки занятия нажаты.")
             return True, None
 
         except PlaywrightTimeoutError:
-            print("Кнопки пока не появились.")
+            logger.warning("Кнопки пока не появились. URL: %s", page.url)
 
-        except Exception as error:
-            print(f"Ошибка поиска кнопки: {error}")
+        except Exception:
+            logger.exception("Ошибка поиска кнопки. URL: %s", page.url)
 
         remaining = (end_time - datetime.now()).total_seconds()
 
         if remaining <= 0:
             break
 
-        sleep_time = min(60, remaining)
+        sleep_time = min(random.uniform(120, 240), remaining)
 
-        print(f"Следующая проверка через {sleep_time:.0f} секунд...")
+        logger.info("Следующая проверка через %.0f сек.", sleep_time)
         await asyncio.sleep(sleep_time)
 
         if datetime.now() >= end_time:
             break
 
+        # В старой версии здесь был driver.refresh(): остаёмся на странице
+        # расписания и просто перечитываем её. Возврат на главную через
+        # open_schedule() ломал повторный поиск кнопок.
         try:
-            print("Повторно открываю расписание...")
+            logger.debug("Перезагружаю страницу: %s", page.url)
+            await page.reload(wait_until="domcontentloaded")
+            logger.info("Страница перезагружена: %s", page.url)
 
-            await open_schedule(page, email, password)
+        except Exception:
+            logger.exception("Ошибка перезагрузки страницы. URL: %s", page.url)
 
-            print(f"Текущий URL: {page.url}")
+            # Запасной путь, если reload не удался.
+            try:
+                await open_schedule(page, email, password)
+                logger.info("Расписание открыто повторно: %s", page.url)
 
-        except Exception as error:
-            print(f"Ошибка повторного открытия расписания: {error}")
+            except Exception:
+                logger.exception("Ошибка повторного открытия расписания")
 
-    print("Время пары закончилось.")
+    logger.warning("Время пары закончилось. Кнопки не найдены.")
     return False, "Время истекло"
 
 
@@ -152,7 +224,7 @@ async def check(schedule, page, email, password):
         pair = str(lesson["pair"])
 
         if pair not in TIME_SLOTS:
-            print(f"Неизвестный номер пары: {pair}")
+            logger.warning("Неизвестный номер пары: %s", pair)
             continue
 
         start_time_str, end_time_str = TIME_SLOTS[pair]
@@ -171,30 +243,36 @@ async def check(schedule, page, email, password):
 
         current_time = datetime.now()
 
-        print(
-            f"Проверяю пару {pair}: "
-            f"{start_time_str} - {end_time_str}, "
-            f"сейчас {current_time.strftime('%H:%M')}"
+        logger.info(
+            "Проверяю пару %s: %s - %s, сейчас %s",
+            pair,
+            start_time_str,
+            end_time_str,
+            current_time.strftime("%H:%M"),
         )
 
         if current_time >= end_time:
-            print(f"Пара {pair} уже прошла. Пропускаю...")
+            logger.info("Пара %s уже прошла. Пропускаю...", pair)
             continue
 
         # Ожидание начала пары
         while current_time < start_time:
             delta = (start_time - current_time).total_seconds()
 
-            print(f"До начала пары {pair} осталось {delta / 60:.1f} минут.")
+            logger.info(
+                "До начала пары %s осталось %.1f минут.",
+                pair,
+                delta / 60,
+            )
 
             await asyncio.sleep(delta)
             current_time = datetime.now()
 
         if datetime.now() >= end_time:
-            print(f"Время пары {pair} закончилось. Пропускаю...")
+            logger.info("Время пары %s закончилось. Пропускаю...", pair)
             continue
 
-        print(f"Время пары {pair}, открываю сайт...")
+        logger.info("Время пары %s, открываю сайт...", pair)
 
         try:
             await open_schedule(page, email, password)
@@ -207,14 +285,14 @@ async def check(schedule, page, email, password):
             )
 
             if was_checked:
-                print(f"Кнопки занятия нажаты. Пара {pair}")
+                logger.info("Кнопки занятия нажаты. Пара %s", pair)
             else:
-                print(f"Ошибка при отметке пары {pair}: {error}")
+                logger.error("Ошибка при отметке пары %s: %s", pair, error)
 
-        except Exception as error:
-            print(f"Ошибка при обработке пары {pair}: {error}")
+        except Exception:
+            logger.exception("Ошибка при обработке пары %s", pair)
 
-    print("Все пары на сегодня обработаны.")
+    logger.info("Все пары на сегодня обработаны.")
     return True
 
 
@@ -242,20 +320,32 @@ def normalize_datetime(value):
 async def main():
 
     load_dotenv()
+    setup_logging()
 
     email = os.getenv("LOGIN")
     password = os.getenv("PASSWORD")
     redis_url = os.getenv("REDIS_URL")
 
     if not redis_url:
+        logger.error("Не задан REDIS_URL в .env")
         raise ValueError("REDIS_URL не задан в .env")
 
-    print("Создание экземпляра браузера...")
+    logger.info(
+        "Конфигурация: LOGIN=%s, PASSWORD=%s, REDIS=%s, LOG_LEVEL=%s, LOG_FILE=%s",
+        "задан" if email else "НЕ задан",
+        "задан" if password else "НЕ задан",
+        _redis_target(redis_url),
+        os.getenv("LOG_LEVEL", "INFO").upper(),
+        os.getenv("LOG_FILE", "autocheck.log") or "отключён",
+    )
+
+    logger.info("Создание экземпляра браузера...")
 
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
             headless=True,
         )
+        logger.info("Браузер запущен: Chromium %s", browser.version)
 
         context = await browser.new_context()
 
@@ -264,70 +354,87 @@ async def main():
         db = RedisDB(redis_url)
 
         try:
-            print("Инициализация базы данных...")
+            logger.info("Инициализация базы данных...")
 
             while True:
-                current_date = datetime.now().date()
+                try:
+                    current_date = datetime.now().date()
 
-                print(f"\nПроверка расписания на {current_date}")
+                    logger.info("Проверка расписания на %s", current_date)
 
-                schedule, today_has_lessons = await db.check_scheduler(current_date)
-
-                if today_has_lessons:
-                    print("Сегодня есть пары.")
-
-                    await check(
-                        schedule,
-                        page,
-                        email,
-                        password,
+                    schedule, today_has_lessons = await db.check_scheduler(
+                        current_date
                     )
 
-                    now = datetime.now()
+                    if today_has_lessons:
+                        logger.info("Сегодня есть пары.")
 
-                    tomorrow = (now + timedelta(days=1)).replace(
-                        hour=0,
-                        minute=0,
-                        second=0,
-                        microsecond=0,
+                        await check(
+                            schedule,
+                            page,
+                            email,
+                            password,
+                        )
+
+                        now = datetime.now()
+
+                        tomorrow = (now + timedelta(days=1)).replace(
+                            hour=0,
+                            minute=0,
+                            second=0,
+                            microsecond=0,
+                        )
+
+                        sleep_seconds = (tomorrow - now).total_seconds()
+
+                        logger.info(
+                            "Жду до полуночи (%.2f часов)",
+                            sleep_seconds / 3600,
+                        )
+
+                        await asyncio.sleep(sleep_seconds)
+
+                        continue
+
+                    # Сегодня занятий нет
+                    if not schedule:
+                        logger.info(
+                            "Расписание пустое. Повторная проверка через час."
+                        )
+                        await asyncio.sleep(3600)
+                        continue
+
+                    next_date_row = schedule[0]
+                    next_date = normalize_datetime(next_date_row[1])
+
+                    current_datetime = datetime.now()
+
+                    sleep_seconds = (next_date - current_datetime).total_seconds()
+
+                    if sleep_seconds <= 0:
+                        logger.warning("Дата следующего расписания уже наступила.")
+                        await asyncio.sleep(60)
+                        continue
+
+                    logger.info(
+                        "Сегодня пар нет. Жду до %s (%.1f минут)",
+                        next_date,
+                        sleep_seconds / 60,
                     )
-
-                    sleep_seconds = (tomorrow - now).total_seconds()
-
-                    print(f"Жду до полуночи ({sleep_seconds / 3600:.2f} часов)")
 
                     await asyncio.sleep(sleep_seconds)
 
-                    continue
+                except asyncio.CancelledError:
+                    raise
 
-                # Сегодня занятий нет
-                if not schedule:
-                    print("Расписание пустое. Повторная проверка через час.")
-                    await asyncio.sleep(3600)
-                    continue
-
-                next_date_row = schedule[0]
-                next_date = normalize_datetime(next_date_row[1])
-
-                current_datetime = datetime.now()
-
-                sleep_seconds = (next_date - current_datetime).total_seconds()
-
-                if sleep_seconds <= 0:
-                    print("Дата следующего расписания уже наступила.")
+                except Exception:
+                    logger.exception(
+                        "Ошибка в главном цикле. Повторная проверка через 60 сек."
+                    )
                     await asyncio.sleep(60)
-                    continue
-
-                print(
-                    f"Сегодня пар нет. "
-                    f"Жду до {next_date} "
-                    f"({sleep_seconds / 60:.1f} минут)"
-                )
-
-                await asyncio.sleep(sleep_seconds)
 
         finally:
-            print("Закрываю браузер...")
+            logger.info("Закрываю браузер...")
 
             await db.close()
             await context.close()
@@ -338,4 +445,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nПрограмма остановлена пользователем.")
+        logger.info("Программа остановлена пользователем.")
