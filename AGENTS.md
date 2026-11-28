@@ -5,7 +5,7 @@ This repository contains a set of Python services (Dockerized) related to schedu
 
 ## Repo layout (high level)
 - `docker-compose.yml` — orchestrates services: `autocollector`, `schedule`, and `redis` (service `autocheck` is commented out).
-- `requirements.txt` — top-level Python deps (shared intent across services in this repo). Key libs: `aiogram`, `APScheduler`, `asyncpg`, `beautifulsoup4`, `psycopg2_binary`, `python-dotenv`, `Requests`, `selenium`, `webdriver_manager`.
+- Каждый сервис (`autocollector/`, `schedule/`, `autocheck/`) имеет свой `requirements.txt`; общего корневого файла нет.
 - `autocollector/` — fetches schedules from SUT website and stores parsed entries into Redis.
   - `main.py` — `Bonch` scraper + scheduling/daemon loop.
   - `repository.py` — Redis repository (`RedisDB`) used by collector.
@@ -13,7 +13,7 @@ This repository contains a set of Python services (Dockerized) related to schedu
 - `autocheck/` — Playwright-based automation to “start lesson” in LK SUT cabinet (attendance helper).
   - `main.py` — login, navigation, periodic checks, waits between pairs.
   - `repository.py` — Redis reads (`RedisDB`) for schedule windows.
-  - `Dockerfile` — uses `mcr.microsoft.com/playwright/python:v1.56.0-noble`, installs from `requirements.txt`, runs `python main.py`.
+  - `Dockerfile` — uses `mcr.microsoft.com/playwright/python:v1.56.0-noble`, installs from `autocheck/requirements.txt`, runs `python main.py`.
 - `schedule/` — schedule access utilities:
   - `repository.py` — `Schedule` (data access from Redis), returns `Lesson` models.
   - `models.py` — dataclasses (`Lesson`).
@@ -57,7 +57,7 @@ This repository contains a set of Python services (Dockerized) related to schedu
 - **Network scraping fragility**: `autocollector` depends on SUT website HTML structure and classes (`vt256`, `rasp-day*`, `vt240`, etc.). Changes on the website may break parsing.
 - **Telegram bot proxy**: `schedule/telegram_bot.py` hardcodes a SOCKS5 proxy (`127.0.0.1:2080`). If running in another environment, this may need to be made configurable.
 - **Dockerfile differences**:
-  - `autocheck/Dockerfile` copies from `autocheck/.` into `/app` and installs from top-level `requirements.txt` (copied as `requirements.txt` in build context).
+  - `autocheck/Dockerfile` copies `autocheck/requirements.txt` into `/app`, installs from it, then copies `autocheck/.` into `/app`.
   - `schedule/Dockerfile` copies `schedule/` into `/app` and runs `pip install -r requirements.txt` from that dir context in the Dockerfile as written (check build context in `docker-compose.yml`: build context is repo root for services; verify paths before editing Dockerfiles).
 - **Do not commit secrets**: `.env` is gitignored. Never hardcode tokens/passwords.
 - **`src/` is a stub**: FastAPI app endpoints return static `{"status":"live"}` placeholders; PostgreSQL code is present but not integrated into compose/services. Treat as WIP/experimental unless asked to implement.

@@ -12,16 +12,16 @@ services:
       redis:
         condition: service_healthy
 
-#  autocheck:
-#    build: 
-#          context: .
-#          dockerfile: autocheck/Dockerfile
-#    container_name: autocheck
-#    restart: always
-#    env_file: .env
-#    depends_on:
-#      redis:
-#        condition: service_healthy
+  autocheck:
+    build:
+      context: .
+      dockerfile: autocheck/Dockerfile
+    container_name: autocheck
+    restart: always
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
 
   schedule:
     build: 

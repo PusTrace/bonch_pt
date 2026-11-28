@@ -1,7 +1,10 @@
 import json
+import logging
 from datetime import date
 
 from redis.asyncio import Redis
+
+logger = logging.getLogger("autocheck.repository")
 
 
 class RedisDB:
@@ -28,6 +31,12 @@ class RedisDB:
         schedule = [json.loads(value) for value in values if value is not None]
 
         schedule.sort(key=lambda item: int(item["pair"]))
+        logger.debug(
+            "Расписание получено: sect=%s, date=%s, записей=%d",
+            sect,
+            target_date,
+            len(schedule),
+        )
 
         return schedule
 
@@ -41,6 +50,7 @@ class RedisDB:
         today_schedule = await self.get_schedule(sect, current_date)
 
         if today_schedule:
+            logger.debug("На сегодня найдено пар: %d", len(today_schedule))
             return today_schedule, True
 
         next_dates = await self.redis.zrangebyscore(
@@ -52,9 +62,11 @@ class RedisDB:
         )
 
         if not next_dates:
+            logger.debug("Ближайших дат с расписанием нет")
             return [], False
 
         next_date = date.fromisoformat(next_dates[0])
+        logger.debug("Ближайшая дата с расписанием: %s", next_date)
 
         next_schedule = await self.get_schedule(sect, next_date)
 
